@@ -108,10 +108,20 @@ export default {
   },
   methods: {
     simularNav(desti) {
-      if (desti === 'traductor' || desti === 'home') {
+      if (desti === 'traductor') {
         this.paginaActual = desti;
-        // Reiniciamos AOS para que detecte los nuevos elementos si cambiamos de vista
         setTimeout(() => AOS.refresh(), 100);
+      } else if (desti === 'home') {
+        // If we are already on home (which renders this component), just reset internal state if needed
+        this.paginaActual = 'home';
+        this.$router.push('/');
+      } else if (desti === 'login') {
+        this.$router.push('/login');
+      } else if (desti === 'registre') {
+        this.$router.push('/register');
+      } else if (desti === 'com-funciona') {
+         // Keep existing logic or add route if exists
+         console.log('Com funciona clicked');
       } else {
         alert('Navegant a: ' + desti);
       }
@@ -123,16 +133,14 @@ export default {
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
 
-/* --- ANIMACIONES DE VUE TRANSITION --- */
 .fade-enter-active, .fade-leave-active {
   transition: opacity 0.5s ease, transform 0.5s ease;
 }
 .fade-enter-from, .fade-leave-to {
   opacity: 0;
-  transform: translateY(10px); /* Un pequeño desplazamiento al cambiar de página */
+  transform: translateY(10px); 
 }
 
-/* --- ANIMACIÓN CSS FLOTANTE PARA LA FLECHA --- */
 .floating-arrow {
   animation: bounce 2s infinite;
 }
@@ -143,7 +151,6 @@ export default {
   60% { transform: translateY(-5px); }
 }
 
-/* --- RESET LOCAL & BASE (Igual que antes) --- */
 .gesto-app {
   font-family: 'Inter', sans-serif;
   background-color: #121212; 
@@ -152,7 +159,7 @@ export default {
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
   width: 100%;
-  overflow-x: hidden; /* Importante para evitar scroll lateral con animaciones */
+  overflow-x: hidden; 
 }
 
 * { box-sizing: border-box; }

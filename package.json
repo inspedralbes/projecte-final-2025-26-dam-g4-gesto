@@ -20,5 +20,9 @@
   "bugs": {
     "url": "https://github.com/inspedralbes/projecte-final-2025-26-dam-g4-gesto/issues"
   },
-  "homepage": "https://github.com/inspedralbes/projecte-final-2025-26-dam-g4-gesto#readme"
+  "homepage": "https://github.com/inspedralbes/projecte-final-2025-26-dam-g4-gesto#readme",
+  "dependencies": {
+    "compose": "^0.1.2",
+    "docker": "^1.0.0"
+  }
 }

@@ -1,15 +1,9 @@
 <script>
-import GestoLanding from './components/GestoLanding.vue'
-
-export default {
-  components: {
-    GestoLanding
-  }
-}
+// No components needed here, handled by router
 </script>
 
 <template>
-  <GestoLanding />
+  <router-view />
 </template>
 
 <style>
