@@ -2,11 +2,20 @@
   <div class="camera-container">
     <video ref="videoRef" autoplay muted playsinline class="fullscreen-video"></video>
     
-    <button @click="switchCamera" class="switch-btn" aria-label="Cambiar cámara">
-      <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24" fill="currentColor">
-        <path d="M20 5h-3.17L15 3H9L7.17 5H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-5 11.5V13H9v2.4L5.5 12 9 8.6V11h6V8.6l3.5 3.4-3.5 3.5z"/>
-      </svg>
-    </button>
+    <div class="controls">
+      <button @click="goHome" class="control-btn" aria-label="Volver al inicio">
+        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24" fill="currentColor">
+          <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+        </svg>
+      </button>
+
+      <button @click="switchCamera" class="control-btn" aria-label="Cambiar cámara">
+        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24" fill="currentColor">
+          <path d="M20 5h-3.17L15 3H9L7.17 5H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-5 11.5V13H9v2.4L5.5 12 9 8.6V11h6V8.6l3.5 3.4-3.5 3.5z"/>
+        </svg>
+      </button>
+    </div>
+
     
     <p v-if="error" class="error-msg">{{ error }}</p>
   </div>
@@ -14,6 +23,9 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
 
 const videoRef = ref(null);
 const error = ref(null);
@@ -51,7 +63,11 @@ const startCamera = async () => {
 
 const switchCamera = () => {
   facingMode.value = facingMode.value === 'environment' ? 'user' : 'environment';
-  startCamera(); // Ahora sí vuelve a ejecutar la lógica con el nuevo modo
+  startCamera(); 
+};
+
+const goHome = () => {
+  router.push('/');
 };
 
 onMounted(() => {
@@ -81,39 +97,41 @@ onBeforeUnmount(() => {
   display: block;
 }
 
-.switch-btn {
+.controls {
   position: absolute;
   bottom: 40px;
   left: 50%;
   transform: translateX(-50%);
+  display: flex;
+  gap: 20px;
   z-index: 10;
-  
+}
+
+.control-btn {
   background-color: rgba(255, 255, 255, 0.9);
-  color: #333; /* Color del icono */
+  color: #333;
   border: none;
-  border-radius: 50%; /* Lo hice perfectamente redondo */
+  border-radius: 50%;
   
-  /* Flexbox para centrar el icono perfectamente */
   display: flex;
   align-items: center;
   justify-content: center;
   
-  width: 56px;  /* Tamaño fijo para que sea redondo */
-  height: 56px; /* Tamaño fijo para que sea redondo */
+  width: 56px;
+  height: 56px;
   
   cursor: pointer;
   box-shadow: 0 4px 10px rgba(0,0,0,0.3);
   transition: transform 0.2s, background-color 0.2s;
 }
 
-/* Hacemos el SVG un poco más grande */
-.switch-btn svg {
+.control-btn svg {
   width: 28px;
   height: 28px;
 }
 
-.switch-btn:active {
-  transform: translateX(-50%) scale(0.95);
+.control-btn:active {
+  transform: scale(0.95);
   background-color: rgba(255, 255, 255, 1);
 }
 
