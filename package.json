@@ -1,0 +1,28 @@
+{
+  "name": "projecte-final-2025-26-dam-g4-gesto",
+  "version": "1.0.0",
+  "description": "**GESTO** és una solució mòbil innovadora dissenyada per eliminar les barreres de comunicació entre persones oients i persones amb discapacitat auditiva. L'aplicació utilitza **Intel·ligència Artificial** per traduir la Llengua de Signes a text i veu en temps real.",
+  "main": "index.js",
+  "directories": {
+    "doc": "doc"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/inspedralbes/projecte-final-2025-26-dam-g4-gesto.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/inspedralbes/projecte-final-2025-26-dam-g4-gesto/issues"
+  },
+  "homepage": "https://github.com/inspedralbes/projecte-final-2025-26-dam-g4-gesto#readme",
+  "dependencies": {
+    "compose": "^0.1.2",
+    "docker": "^1.0.0"
+  }
+}
