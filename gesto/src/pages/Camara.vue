@@ -1,9 +1,15 @@
 <template>
-<div class = "camera-container">
+  <div class="camera-container">
     <video ref="videoRef" autoplay muted playsinline class="fullscreen-video"></video>
-    <button @click="switchCamera" class="switch-btn">🔄</button>
+    
+    <button @click="switchCamera" class="switch-btn" aria-label="Cambiar cámara">
+      <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24" fill="currentColor">
+        <path d="M20 5h-3.17L15 3H9L7.17 5H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-5 11.5V13H9v2.4L5.5 12 9 8.6V11h6V8.6l3.5 3.4-3.5 3.5z"/>
+      </svg>
+    </button>
+    
     <p v-if="error" class="error-msg">{{ error }}</p>
-</div>
+  </div>
 </template>
 
 <script setup>
@@ -11,49 +17,54 @@ import { ref, onMounted, onBeforeUnmount } from 'vue';
 
 const videoRef = ref(null);
 const error = ref(null);
-const facingMode = ref('environment');
+const facingMode = ref('environment'); // Empieza con la cámara trasera
 let currentStream = null;
 
-const startCamera = async ()=> {
-    if (currentStream){
-     currentStream.getTracks().forEach(track => track.stop());
-    }
-}
-const constraints = {
+const startCamera = async () => {
+  // 1. Detener stream anterior si existe
+  if (currentStream) {
+    currentStream.getTracks().forEach(track => track.stop());
+  }
+
+  // 2. Definir constraints (Movi esto DENTRO de la función para que se actualice al cambiar facingMode)
+  const constraints = {
     video: {
       facingMode: facingMode.value,
       width: { ideal: 1920 },
       height: { ideal: 1080 }
     },
-    audio: false 
+    audio: false
   };
-  try {
-    const stream= await navigator.mediaDevices.getUserMedia(constraints);
-    currentStream=stream;
-    if(videoRef.value){
-        videoRef.value.srcObject = stream;
-    }  
-    error.value=null;
 
-  } catch (error) {
-    console.error("Error al accedir a la càmera:", error);
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    currentStream = stream;
+    if (videoRef.value) {
+      videoRef.value.srcObject = stream;
+    }
+    error.value = null;
+  } catch (err) {
+    console.error("Error al accedir a la càmera:", err);
     error.value = "No s'ha pogut accedir a la càmera. Verifica els permisos.";
   }
+};
 
 const switchCamera = () => {
-    facingMode.value = facingMode.value === 'environment' ? 'user' : 'environment';
-    startCamera();
-}
-onMounted(()=>{
-    startCamera();
-});
-onBeforeUnmount(()=>{
-    if(currentStream){
-        currentStream.getTracks().forEach(track => track.stop());
-    }
+  facingMode.value = facingMode.value === 'environment' ? 'user' : 'environment';
+  startCamera(); // Ahora sí vuelve a ejecutar la lógica con el nuevo modo
+};
+
+onMounted(() => {
+  startCamera();
 });
 
+onBeforeUnmount(() => {
+  if (currentStream) {
+    currentStream.getTracks().forEach(track => track.stop());
+  }
+});
 </script>
+
 <style scoped>
 .camera-container {
   position: relative;
@@ -78,18 +89,32 @@ onBeforeUnmount(()=>{
   z-index: 10;
   
   background-color: rgba(255, 255, 255, 0.9);
+  color: #333; /* Color del icono */
   border: none;
-  border-radius: 50px;
-  padding: 12px 24px;
-  font-size: 1rem;
-  font-weight: 600;
+  border-radius: 50%; /* Lo hice perfectamente redondo */
+  
+  /* Flexbox para centrar el icono perfectamente */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  width: 56px;  /* Tamaño fijo para que sea redondo */
+  height: 56px; /* Tamaño fijo para que sea redondo */
+  
   cursor: pointer;
   box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-  transition: transform 0.2s;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+/* Hacemos el SVG un poco más grande */
+.switch-btn svg {
+  width: 28px;
+  height: 28px;
 }
 
 .switch-btn:active {
   transform: translateX(-50%) scale(0.95);
+  background-color: rgba(255, 255, 255, 1);
 }
 
 .error-msg {
