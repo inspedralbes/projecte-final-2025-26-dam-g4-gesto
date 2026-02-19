@@ -1,7 +1,13 @@
 <template>
   <div class="camera-container">
-    <video ref="videoRef" autoplay muted playsinline class="fullscreen-video"></video>
+    <video ref="videoRef" autoplay muted playsinline class="fullscreen-video" :class="{ 'espejo': facingMode === 'user' }"></video>
     
+    <DrawSkeleton :handsData="manosDetectadas" :esFrontal="facingMode === 'user'" />
+
+    <div class="traduccion-hud" v-if="signoDetectado">
+      <h1>{{ signoDetectado }}</h1>
+    </div>
+
     <div class="controls">
       <button @click="goHome" class="control-btn" aria-label="Volver al inicio">
         <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24" fill="currentColor">
@@ -16,7 +22,6 @@
       </button>
     </div>
 
-    
     <p v-if="error" class="error-msg">{{ error }}</p>
   </div>
 </template>
@@ -24,21 +29,28 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
+// AÑADIDO: Importamos la IA y el componente del esqueleto
+import { GestureService } from '../services/GestureService'; 
+import DrawSkeleton from '../components/DrawSkeleton.vue';
 
 const router = useRouter();
 
 const videoRef = ref(null);
 const error = ref(null);
-const facingMode = ref('environment'); // Empieza con la cámara trasera
+const facingMode = ref('user'); // Cambiado por defecto a 'user' (cámara frontal es mejor para lengua de signos)
 let currentStream = null;
 
+// NUEVO: Variables para la IA
+const gestureService = new GestureService();
+const manosDetectadas = ref([]);
+const signoDetectado = ref('Iniciando IA...');
+let animationFrameId = null;
+
 const startCamera = async () => {
-  // 1. Detener stream anterior si existe
   if (currentStream) {
     currentStream.getTracks().forEach(track => track.stop());
   }
 
-  // 2. Definir constraints (Movi esto DENTRO de la función para que se actualice al cambiar facingMode)
   const constraints = {
     video: {
       facingMode: facingMode.value,
@@ -53,6 +65,10 @@ const startCamera = async () => {
     currentStream = stream;
     if (videoRef.value) {
       videoRef.value.srcObject = stream;
+      // NUEVO: Empezamos a predecir solo cuando el video ya está cargado y reproduciéndose
+      videoRef.value.onloadeddata = () => {
+        predictLoop();
+      };
     }
     error.value = null;
   } catch (err) {
@@ -70,7 +86,27 @@ const goHome = () => {
   router.push('/');
 };
 
-onMounted(() => {
+// NUEVO: Bucle infinito que le pasa el video a la IA
+const predictLoop = () => {
+  if (videoRef.value && videoRef.value.readyState === 4) {
+    // 1. Enviamos el frame al cerebro
+    const resultado = gestureService.detect(videoRef.value, performance.now());
+
+    // 2. Si detecta algo, actualizamos las variables
+    if (resultado) {
+      manosDetectadas.value = resultado.hands;
+      signoDetectado.value = resultado.signo;
+    } else {
+      manosDetectadas.value = [];
+      signoDetectado.value = ""; // Ocultamos el texto si no hay manos
+    }
+  }
+  animationFrameId = requestAnimationFrame(predictLoop);
+};
+
+onMounted(async () => {
+  // AÑADIDO: Inicializamos la IA antes de encender la cámara
+  await gestureService.initialize();
   startCamera();
 });
 
@@ -78,6 +114,8 @@ onBeforeUnmount(() => {
   if (currentStream) {
     currentStream.getTracks().forEach(track => track.stop());
   }
+  // AÑADIDO: Detenemos el bucle de la IA al salir
+  if (animationFrameId) cancelAnimationFrame(animationFrameId);
 });
 </script>
 
@@ -93,10 +131,34 @@ onBeforeUnmount(() => {
 .fullscreen-video {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: cover; /* Cubre toda la pantalla */
   display: block;
 }
 
+/* NUEVO: Efecto espejo para cámara frontal */
+.espejo {
+  transform: scaleX(-1);
+}
+
+/* NUEVO: Estilo para el texto de traducción flotante */
+.traduccion-hud {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 10px 30px;
+  border-radius: 20px;
+  z-index: 10;
+  text-align: center;
+}
+.traduccion-hud h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+/* Tus estilos originales se mantienen igual... */
 .controls {
   position: absolute;
   bottom: 40px;
@@ -112,28 +174,18 @@ onBeforeUnmount(() => {
   color: #333;
   border: none;
   border-radius: 50%;
-  
   display: flex;
   align-items: center;
   justify-content: center;
-  
   width: 56px;
   height: 56px;
-  
   cursor: pointer;
   box-shadow: 0 4px 10px rgba(0,0,0,0.3);
   transition: transform 0.2s, background-color 0.2s;
 }
 
-.control-btn svg {
-  width: 28px;
-  height: 28px;
-}
-
-.control-btn:active {
-  transform: scale(0.95);
-  background-color: rgba(255, 255, 255, 1);
-}
+.control-btn svg { width: 28px; height: 28px; }
+.control-btn:active { transform: scale(0.95); background-color: rgba(255, 255, 255, 1); }
 
 .error-msg {
   position: absolute;
@@ -145,5 +197,6 @@ onBeforeUnmount(() => {
   padding: 20px;
   border-radius: 8px;
   text-align: center;
+  z-index: 20;
 }
 </style>

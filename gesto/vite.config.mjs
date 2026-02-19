@@ -43,6 +43,7 @@ export default defineConfig({
       'unplugin-vue-router/runtime',
       'unplugin-vue-router/data-loaders',
       'unplugin-vue-router/data-loaders/basic',
+      '@mediapipe/tasks-vision',
     ],
   },
   define: { 'process.env': {} },
