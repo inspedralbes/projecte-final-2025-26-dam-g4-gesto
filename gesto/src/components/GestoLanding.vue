@@ -9,6 +9,8 @@
           GESTO
         </div>
         <div class="nav-links">
+          <button @click="simularNav('aprendre')" class="btn-aprendre">TUTORIAL</button>
+
           <template v-if="user">
             <span class="user-greeting">Hola, {{ user.name }}</span>
             <button @click="simularNav('logout')" class="btn-logout">TANCAR SESSIÓ</button>
@@ -181,7 +183,10 @@ export default {
       this.$router.push('/');
     },
     simularNav(desti) {
-      if (desti === 'traductor') {
+      if (desti === 'aprendre') {
+        // Redirige a la nueva página usando Vue Router
+        this.$router.push('/aprendre');
+      } else if (desti === 'traductor') {
         this.$router.push('/Camara');
       } else if (desti === 'home') {
         this.paginaActual = 'home';
@@ -244,6 +249,20 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 .user-greeting { color: #fff; margin-right: 20px; font-weight: 500; }
 .btn-logout { background: none; border: 1px solid #333; color: #A0A0A0; font-weight: 600; cursor: pointer; padding: 8px 16px; border-radius: 4px; font-size: 0.9rem; transition: all 0.3s; }
 .btn-logout:hover { border-color: #ffca28; color: #ffca28; }
+
+.btn-aprendre {
+  color: white;
+  border: 1px solid white;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-weight: 800;
+  margin: 12px;
+  background: transparent;
+  transition: background 0.3s ease;
+}
+.btn-aprendre:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
 
 .hero { height: 85vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; position: relative; background: radial-gradient(circle at center, #1e1e1e 0%, #121212 70%); }
 .hero h1 { font-size: 3.5rem; font-weight: 800; line-height: 1.2; margin-bottom: 20px; background: linear-gradient(to right, #ffffff, #a0a0a0); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
