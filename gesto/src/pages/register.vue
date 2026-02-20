@@ -22,7 +22,7 @@
         <form @submit.prevent="handleRegister">
           <div class="form-group">
             <label for="name">Nom complet</label>
-            <input type="text" id="name" v-model="form.name" required placeholder="El teu nom">
+            <input type="text" id="name" v-model="form.name" required placeholder="El teu nom" maxlength="32">
           </div>
 
           <div class="form-group">
