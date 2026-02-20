@@ -29,7 +29,6 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
-// AÑADIDO: Importamos la IA y el componente del esqueleto
 import { GestureService } from '../services/GestureService'; 
 import DrawSkeleton from '../components/DrawSkeleton.vue';
 
@@ -37,10 +36,9 @@ const router = useRouter();
 
 const videoRef = ref(null);
 const error = ref(null);
-const facingMode = ref('user'); // Cambiado por defecto a 'user' (cámara frontal es mejor para lengua de signos)
+const facingMode = ref('user'); 
 let currentStream = null;
 
-// NUEVO: Variables para la IA
 const gestureService = new GestureService();
 const manosDetectadas = ref([]);
 const signoDetectado = ref('Iniciando IA...');
@@ -65,7 +63,6 @@ const startCamera = async () => {
     currentStream = stream;
     if (videoRef.value) {
       videoRef.value.srcObject = stream;
-      // NUEVO: Empezamos a predecir solo cuando el video ya está cargado y reproduciéndose
       videoRef.value.onloadeddata = () => {
         predictLoop();
       };
@@ -86,26 +83,22 @@ const goHome = () => {
   router.push('/');
 };
 
-// NUEVO: Bucle infinito que le pasa el video a la IA
 const predictLoop = () => {
   if (videoRef.value && videoRef.value.readyState === 4) {
-    // 1. Enviamos el frame al cerebro
     const resultado = gestureService.detect(videoRef.value, performance.now());
 
-    // 2. Si detecta algo, actualizamos las variables
     if (resultado) {
       manosDetectadas.value = resultado.hands;
       signoDetectado.value = resultado.signo;
     } else {
       manosDetectadas.value = [];
-      signoDetectado.value = ""; // Ocultamos el texto si no hay manos
+      signoDetectado.value = ""; 
     }
   }
   animationFrameId = requestAnimationFrame(predictLoop);
 };
 
 onMounted(async () => {
-  // AÑADIDO: Inicializamos la IA antes de encender la cámara
   await gestureService.initialize();
   startCamera();
 });
@@ -114,7 +107,6 @@ onBeforeUnmount(() => {
   if (currentStream) {
     currentStream.getTracks().forEach(track => track.stop());
   }
-  // AÑADIDO: Detenemos el bucle de la IA al salir
   if (animationFrameId) cancelAnimationFrame(animationFrameId);
 });
 </script>

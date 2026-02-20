@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 //Importar Mediapipe
 export class GestureService {
     constructor() {
@@ -244,3 +245,5 @@ export class GestureService {
         return null;
     }
 }
+=======
+>>>>>>> Stashed changes
