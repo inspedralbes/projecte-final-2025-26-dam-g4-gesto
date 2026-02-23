@@ -9,11 +9,14 @@ export class GestureService {
         this.historialPosicionesX = [];
         // NUEVO: Guardar posiciones Y de la mano (arriba y abajo)
         this.historialPosicionesY = [];
+        // Historial exclusivo para el dedo índice (gesto "No")
+        this.historialIndiceX = [];
         
         // Timestamps
         this.ultimoSaludo = 0;       // Timestamp del último saludo detectado
         this.ultimoSaludo2 = 0;
         this.ultimoAdeu = 0;
+        this.ultimoUno = 0;
 
         // Variables para el gesto "Adeu"
         this.adeuPaso = 0;          // Controla la secuencia de abrir/cerrar
@@ -100,14 +103,13 @@ export class GestureService {
     }
 
     // Analizar el movimiento de la mano para determinar el gesto
-   // Analizar el movimiento de la mano para determinar el gesto
     _analizarMovimiento(manos, timestamp) {
 
-        // Si hay un mensaje congelado y no han pasado 3 segundos, lo seguimos devolviendo
+        // Si hay un mensaje congelado y no han pasado X segundos, lo seguimos devolviendo
         if (this.gestoCongelado && (timestamp - this.tiempoCongelado < this.DURACION_MENSAJE)) {
             return this.gestoCongelado;
         } else {
-            // Si ya pasaron los 3 segundos, quitamos el candado interno
+            // Si ya pasaron los segundos, quitamos el candado interno
             this.gestoCongelado = null;
         }
 
@@ -123,6 +125,53 @@ export class GestureService {
                 this.tiempoCongelado = timestamp;
                 return "Adeu";
             }
+
+            // Comprobar el número "0" (Gesto estático)
+            if (this._esNumeroCero(mano)) {
+                // Limpiamos los historiales de movimiento para no mezclar
+                this.historialPosicionesX = []; 
+                this.historialPosicionesY = []; 
+                this.historialIndiceX = []; // Limpiamos también el del "No" por si acaso
+                
+                // Congelamos el mensaje
+                this.gestoCongelado = "0";   
+                this.tiempoCongelado = timestamp;
+                return "0";
+            }
+
+            // Comprobar la postura base del número "1" / gesto "No"
+            if (this._esNumeroUno(mano)) {
+                // Limpiamos los historiales de la mano entera para no mezclar
+                this.historialPosicionesX = []; 
+                this.historialPosicionesY = []; 
+                
+                // Guardamos la posición X de la punta del dedo índice (punto 8)
+                this.historialIndiceX.push(mano[8].x);
+
+                // Limitamos el historial a 15 posiciones para que sea un movimiento reciente
+                if (this.historialIndiceX.length > 15) {
+                    this.historialIndiceX.shift();
+                }
+
+                // Usamos tu función de agitación para ver si el dedo se mueve de lado a lado
+                if (this._detectarAgitacion(this.historialIndiceX)) {
+                    this.historialIndiceX = []; // Limpiamos la memoria para no hacer spam
+                    
+                    // Como es un gesto de movimiento, SÍ lo congelamos
+                    this.gestoCongelado = "No";   
+                    this.tiempoCongelado = timestamp;
+                    return "No";
+                }
+
+                // Si el dedo está levantado pero no se mueve lo suficiente, es un "1".
+                // IMPORTANTE: Devolvemos "1" pero NO usamos this.gestoCongelado. 
+                // Así permitimos que la IA siga evaluando si decides empezar a mover el dedo.
+                return "1";
+            } else {
+                // Si el usuario baja el dedo índice, reseteamos la memoria del "No"
+                this.historialIndiceX = [];
+            }
+
             // Comprobar si la mano esta abierta para gestos de movimiento
             if (this._esManoAbierta(mano)) {
                 // Guardamos posición X e Y en el historial
@@ -258,6 +307,42 @@ export class GestureService {
         const esInclinacionIzquierda = angulo > -70 && angulo < -20;
 
         return esInclinacionDerecha || esInclinacionIzquierda;
+    }
+
+    // Comprobar si la mano muestra el número 1 (solo dedo índice abierto)
+    _esNumeroUno(landmarks) {
+        // 1. El dedo índice debe estar ABIERTO (punta más arriba que el nudillo)
+        const indiceAbierto = landmarks[8].y < landmarks[5].y;
+        
+        // 2. Medio, anular y meñique deben estar CERRADOS (punta más abajo que el nudillo)
+        const medioCerrado = landmarks[12].y > landmarks[9].y;
+        const anularCerrado = landmarks[16].y > landmarks[13].y;
+        const meniqueCerrado = landmarks[20].y > landmarks[17].y;
+
+        // Nota: No evaluamos el pulgar porque al hacer el "1", algunas personas 
+        // lo apoyan sobre el dedo medio y otras lo dejan un poco suelto. 
+        // Con evaluar estos 4 dedos es suficiente y mucho más preciso.
+
+        return indiceAbierto && medioCerrado && anularCerrado && meniqueCerrado;
+    }
+
+    // Comprobar si la mano muestra el número 0 (pulgar e índice unidos, resto abiertos)
+    _esNumeroCero(landmarks) {
+        // 1. Calcular la distancia entre la punta del pulgar (4) y la del índice (8)
+        const dx = landmarks[8].x - landmarks[4].x;
+        const dy = landmarks[8].y - landmarks[4].y;
+        const distanciaPulgarIndice = Math.hypot(dx, dy); // Teorema de Pitágoras
+        
+        // Consideramos que se tocan si la distancia es muy pequeña (menor a 0.05)
+        const dedosUnidos = distanciaPulgarIndice < 0.05;
+
+        // 2. Medio, anular y meñique deben estar ABIERTOS (punta más arriba que el nudillo inferior)
+        const medioAbierto = landmarks[12].y < landmarks[9].y;
+        const anularAbierto = landmarks[16].y < landmarks[13].y;
+        const meniqueAbierto = landmarks[20].y < landmarks[17].y;
+
+        // Devuelve true solo si se tocan y los otros 3 están levantados
+        return dedosUnidos && medioAbierto && anularAbierto && meniqueAbierto;
     }
 
     // Procesamiento
