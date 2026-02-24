@@ -24,6 +24,11 @@
 
     <p v-if="error" class="error-msg">{{ error }}</p>
   </div>
+  <div>
+    <video ref="videoElement" autoplay playsinline></video>
+    
+    <DatasetCreator :videoElement="videoElement" />
+  </div>
 </template>
 
 <script setup>
@@ -31,6 +36,7 @@ import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import { GestureService } from '../services/GestureService'; 
 import DrawSkeleton from '../components/DrawSkeleton.vue';
+import DatasetCreator from '@/components/DatasetCreator.vue';
 
 const router = useRouter();
 
@@ -97,6 +103,8 @@ const predictLoop = () => {
   }
   animationFrameId = requestAnimationFrame(predictLoop);
 };
+
+const videoElement = ref(null);
 
 onMounted(async () => {
   await gestureService.initialize();
