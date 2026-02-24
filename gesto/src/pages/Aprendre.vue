@@ -99,13 +99,23 @@
               :class="{ 'invert-img': !llicoActualData.esVideo }">
           </div>
 
-          <div class="exercise-area">
-            <div class="camera-placeholder">
+          <div ref="exerciseArea" class="exercise-area">
+            <video 
+              ref="webcam" 
+              class="webcam-video" 
+              autoplay 
+              playsinline 
+              muted 
+              :style="exerciseAreaStyle"
+              :class="{ 'hidden': !cameraReady, 'espejo': true }">
+            </video>
+            <DrawSkeleton v-if="cameraReady" :handsData="hands" :esFrontal="true" :style="exerciseAreaStyle" />
+            <div v-if="!cameraReady" class="camera-placeholder">
               <svg viewBox="0 0 24 24" class="camera-icon" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
                 <circle cx="12" cy="13" r="4"/>
               </svg>
-              <span>Càmera activada: Repeteix el gest</span>
+              <span>Esperant la càmera...</span>
             </div>
           </div>
         </div>
@@ -127,37 +137,52 @@
 
 <script>
 import videoHola from '../assets/videos/hola.mp4';
+import DrawSkeleton from '../components/DrawSkeleton.vue';
+import { GestureService } from '../services/GestureService'; // Importa el servei
 
 export default {
   name: 'AprendrePage',
+  components: {
+    DrawSkeleton
+  },
   data() {
     return {
       nivelActivo: null, 
       pasoActual: 1,
       nivelDesbloqueado: 1, 
 
+      // Dades per al reconeixement de gestos
+      gestureService: null,
+      videoElement: null,
+      hands: [], // Contindrà les dades de les mans detectades
+      currentSign: '', // El gest actual detectat
+      cameraReady: false,
+      stream: null, // Per guardar el MediaStream de la càmera
+      lastVideoTime: -1, // Últim temps del vídeo processat
+      exerciseAreaStyle: {},
+      
       niveles: [
         {
           id: 1,
           titol: "Bàsic",
           llicons: [
-            { titol: "Saludar", instruccio: "Repeteix el moviment del vídeo per saludar.", arxiu: videoHola, esVideo: true },
-            { titol: "Comiat", instruccio: "Fes aquest gest per acomiadar-te.", arxiu: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Sign_language_B.svg/400px-Sign_language_B.svg.png", esVideo: false }
+            { titol: "Saludar", instruccio: "Repeteix el moviment del vídeo per saludar.", gestEsperat: "Hola", arxiu: videoHola, esVideo: true },
+            { titol: "Comiat", instruccio: "Fes aquest gest per acomiadar-te.", gestEsperat: "Adeu", arxiu: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Sign_language_B.svg/400px-Sign_language_B.svg.png", esVideo: false }
           ]
         },
         {
           id: 2,
           titol: "Mitjà",
           llicons: [
-            { titol: "Si us plau", instruccio: "Ajunta les mans al pit.", arxiu: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Sign_language_C.svg/400px-Sign_language_C.svg.png", esVideo: false },
-            { titol: "Gràcies", instruccio: "Porta la mà de la barbeta cap endavant.", arxiu: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Sign_language_A.svg/400px-Sign_language_A.svg.png", esVideo: false }
+            { titol: "Si us plau", instruccio: "Ajunta les mans al pit.", gestEsperat: "Si us plau", arxiu: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Sign_language_C.svg/400px-Sign_language_C.svg.png", esVideo: false },
+            { titol: "Gràcies", instruccio: "Porta la mà de la barbeta cap endavant.", gestEsperat: "Gràcies", arxiu: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Sign_language_A.svg/400px-Sign_language_A.svg.png", esVideo: false }
           ]
         },
         {
           id: 3,
           titol: "Alt",
           llicons: [
-            { titol: "Mare", instruccio: "Toca't la barbeta amb el polze per dir 'Mare'.", arxiu: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Sign_language_B.svg/400px-Sign_language_B.svg.png", esVideo: false }
+            { titol: "Mare", instruccio: "Toca't la barbeta amb el polze per dir 'Mare'.", gestEsperat: "Mare", arxiu: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Sign_language_B.svg/400px-Sign_language_B.svg.png", esVideo: false }
           ]
         }
       ]
@@ -178,7 +203,11 @@ export default {
       return this.niveles.find(n => n.id === this.nivelActivo).llicons.length;
     },
     porcentajeLlico() {
-      return ((this.pasoActual - 1) / this.totalPasosLlico) * 100 + (100 / this.totalPasosLlico);
+      // Cálculo del porcentaje de la lección para la barra de progreso.
+      // Se suma 1 para que la barra no empiece en 0% en la primera lección
+      // y se divide entre totalPasosLlico para normalizar.
+      // Se añade Math.min(100, ...) para asegurar que no exceda el 100%.
+      return Math.min(100, ((this.pasoActual - 1) / this.totalPasosLlico) * 100 + (100 / this.totalPasosLlico));
     }
   },
   mounted() {
@@ -186,8 +215,66 @@ export default {
     if (progresoGuardado) {
       this.nivelDesbloqueado = parseInt(progresoGuardado);
     }
+    // Inicializar el servicio de gestos
+    this.gestureService = new GestureService();
+    this.gestureService.initialize().catch(error => {
+      console.error('Error al inicializar GestureService:', error);
+    });
+  },
+  beforeUnmount() {
+    this.stopCamera();
   },
   methods: {
+    stopCamera() {
+        // Detener la cámara y el procesamiento cuando el componente se desmonte
+        if (this.stream) {
+            this.stream.getTracks().forEach(track => track.stop());
+        }
+        if (this.videoElement) {
+            this.videoElement.srcObject = null;
+        }
+        this.cameraReady = false;
+    },
+    async setupCamera() {
+      this.videoElement = this.$refs.webcam; // Asigna la referencia del elemento <video>
+      const exerciseArea = this.$refs.exerciseArea;
+
+      if (!this.videoElement || !exerciseArea) {
+        console.error("Elemento de video o área de ejercicio no encontrado.");
+        return;
+      }
+      try {
+        this.stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } });
+        this.videoElement.srcObject = this.stream;
+        this.videoElement.addEventListener('loadeddata', () => {
+          this.cameraReady = true;
+          console.log("Cámara lista. Iniciando predicción.");
+          this.predictWebcam();
+        });
+      } catch (error) {
+        console.error("Error al acceder a la cámara:", error);
+        alert("No se pudo acceder a la cámara. Asegúrate de dar permisos.");
+      }
+    },
+    predictWebcam() {
+      if (!this.cameraReady || !this.videoElement || !this.gestureService || !this.gestureService.isRunning || !this.nivelActivo) {
+        return;
+      }
+
+      const now = performance.now();
+      if (this.lastVideoTime !== this.videoElement.currentTime) {
+        this.lastVideoTime = this.videoElement.currentTime;
+        const result = this.gestureService.detect(this.videoElement, now);
+        if (result) {
+          this.hands = result.hands;
+          this.currentSign = result.signo;
+        } else {
+          this.hands = [];
+        }
+      }
+      
+      requestAnimationFrame(this.predictWebcam);
+    },
     tornarAInici() {
       this.$router.push('/');
     },
@@ -195,24 +282,43 @@ export default {
       if (nivel.id <= this.nivelDesbloqueado) {
         this.nivelActivo = nivel.id;
         this.pasoActual = 1;
+        
+        this.$nextTick(() => {
+          this.setupCamera();
+          const exerciseArea = this.$refs.exerciseArea;
+          if (exerciseArea) {
+            this.exerciseAreaStyle = {
+              width: `${exerciseArea.clientWidth}px`,
+              height: `${exerciseArea.clientHeight}px`,
+            };
+          }
+        });
       }
     },
     sortirDeLlico() {
+      this.stopCamera();
       this.nivelActivo = null;
       this.pasoActual = 1;
     },
     comprovarGesto() {
-      if (this.pasoActual < this.totalPasosLlico) {
-        this.pasoActual++;
-      } else {
-        alert(`🎉 Genial! Has completat el Nivell: ${this.niveles[this.nivelActivo - 1].titol}.`);
-        
-        if (this.nivelActivo === this.nivelDesbloqueado && this.nivelDesbloqueado <= this.niveles.length) {
-          this.nivelDesbloqueado++;
-          localStorage.setItem('gesto_nivel_desbloqueado', this.nivelDesbloqueado);
+        const gestEsperat = this.llicoActualData.gestEsperat;
+        if (this.currentSign === gestEsperat) {
+            alert(`✅ Correcte! Has fet el gest de "${gestEsperat}".`);
+            if (this.pasoActual < this.totalPasosLlico) {
+                this.pasoActual++;
+            } else {
+                alert(`🎉 Genial! Has completat el Nivell: ${this.niveles[this.nivelActivo - 1].titol}.`);
+                
+                if (this.nivelActivo === this.nivelDesbloqueado && this.nivelDesbloqueado <= this.niveles.length) {
+                this.nivelDesbloqueado++;
+                localStorage.setItem('gesto_nivel_desbloqueado', this.nivelDesbloqueado);
+                }
+                this.sortirDeLlico();
+            }
+            this.currentSign = ''; // Reiniciar el gest detectat
+        } else {
+            alert(`❌ Incorrecte. Intenta fer el gest de "${gestEsperat}". El gest detectat és "${this.currentSign || 'cap'}".`);
         }
-        this.sortirDeLlico();
-      }
     }
   }
 }
@@ -383,8 +489,21 @@ export default {
 
 .camera-placeholder {
   height: 350px; border: 1px solid #333; background: #161616; border-radius: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #666;
+  position: relative;
 }
 .camera-icon { width: 48px; height: 48px; stroke: #666; margin-bottom: 15px; }
+
+.webcam-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Asegura que el video cubra todo el espacio */
+  border-radius: 12px;
+  transform: scaleX(-1); /* Efecto espejo para la cámara frontal */
+}
+
+.webcam-video.hidden {
+  display: none;
+}
 
 .learning-footer { border-top: 1px solid #1f1f1f; padding: 20px 0; background-color: #0a0a0a; }
 .footer-content { display: flex; justify-content: flex-end; }

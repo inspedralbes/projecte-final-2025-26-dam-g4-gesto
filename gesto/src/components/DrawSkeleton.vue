@@ -15,11 +15,12 @@ const props = defineProps({
 
 const canvasRef = ref(null);
 
-// Ajustar el tamaño del canvas al tamaño de la pantalla
+// Ajustar el tamaño del canvas al tamaño de su contenedor padre
 const resizeCanvas = () => {
-  if (canvasRef.value) {
-    canvasRef.value.width = window.innerWidth;
-    canvasRef.value.height = window.innerHeight;
+  if (canvasRef.value && canvasRef.value.parentElement) {
+    const parent = canvasRef.value.parentElement;
+    canvasRef.value.width = parent.clientWidth;
+    canvasRef.value.height = parent.clientHeight;
   }
 };
 
@@ -49,7 +50,7 @@ watch(() => props.handsData, (newHands) => {
   newHands.forEach(mano => {
     mano.forEach(point => {
       ctx.beginPath();
-      // Multiplicamos por el ancho y alto de la pantalla
+      // Multiplicamos por el ancho y alto del canvas (que ahora se ajusta al padre)
       ctx.arc(point.x * w, point.y * h, 4, 0, 2 * Math.PI);
       ctx.fill();
     });
@@ -59,9 +60,6 @@ watch(() => props.handsData, (newHands) => {
 
 <style scoped>
 .skeleton-canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
   width: 100%;
   height: 100%;
   pointer-events: none; /* SÚPER IMPORTANTE: Permite hacer clic a los botones que estén debajo */
