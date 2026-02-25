@@ -1,20 +1,34 @@
 <template>
   <div class="dataset-creator">
-    <div v-if="!isRecording" class="controls">
+    <div v-if="!estaGravant" class="controls">
       <h3>Crear Dataset de Gestos</h3>
-      <input v-model="nomGest" type="text" placeholder="Nom del gest (ex: 1, adeu, palma)" />
-      <button @click="startCapture" :disabled="!nomGest">
-        Gravar 100 fotos (20 segons)
+      <input v-model="nomGest" type="text" placeholder="Nom del gest (ex: dit_abaix_nas, polze_costat)" />
+      <button @click="iniciarCaptura" :disabled="!nomGest">
+        Gravar 200 fotos (Dreta i Esquerra)
       </button>
+    </div>
+
+    <div v-else-if="estaComprimint" class="recording">
+      <h3>Creant l'arxiu ZIP...</h3>
+      <p>Espera un moment, si us plau 📦</p>
+    </div>
+
+    <div v-else-if="estaEnPausa" class="recording pausa-container">
+      <h3>Canvia de mà! ✋🔄🤚</h3>
+      <p>La gravació es reprendrà en:</p>
+      <div class="compte-enrere">{{ segonsRestants }}</div>
     </div>
 
     <div v-else class="recording">
       <h3>Gravant "{{ nomGest }}"...</h3>
       <p>Mou la mà lentament (canvia la distància i l'angle)</p>
+      <p v-if="compteFotos < meitatFotos" class="ma-indicador">👉 Fent servir la <b>PRIMERA MÀ</b></p>
+      <p v-else class="ma-indicador">👉 Fent servir la <b>SEGONA MÀ</b></p>
+      
       <div class="progress-bar">
-        <div class="progress" :style="{ width: (imageCount / maxImages) * 100 + '%' }"></div>
+        <div class="progress" :style="{ width: (compteFotos / maxFotos) * 100 + '%' }"></div>
       </div>
-      <p>{{ imageCount }} / {{ maxImages }} fotos</p>
+      <p>{{ compteFotos }} / {{ maxFotos }} fotos</p>
     </div>
   </div>
 </template>
@@ -30,20 +44,26 @@ const props = defineProps({
   }
 });
 
+// Variables d'estat reactives
 const nomGest = ref('');
-const isRecording = ref(false);
-const isCompressing = ref(false); // NUEVO: Para saber si está comprimiendo el zip
-const imageCount = ref(0);
-const maxImages = 100; 
+const estaGravant = ref(false);
+const estaComprimint = ref(false); 
+const estaEnPausa = ref(false);
 
-let intervalId = null;
+const compteFotos = ref(0);
+const maxFotos = 200; 
+const meitatFotos = 100;
+const tempsPausa = 5; // Segons de pausa
+const segonsRestants = ref(0);
+
+// Variables internes
+let idInterval = null;
 let zip = null;
-let folder = null;
-let isStopping = false;
+let carpeta = null;
+let sEstaAturant = false;
 
-const startCapture = () => {
-  // TRUC DEFINITIU: Ignorem el "props.videoElement" de Vue 
-  // i busquem l'etiqueta de vídeo directament al navegador web.
+// Funció principal per començar
+const iniciarCaptura = () => {
   const video = document.querySelector('video');
 
   if (!video) {
@@ -59,76 +79,100 @@ const startCapture = () => {
     return;
   }
 
-  // Reiniciem variables
-  isRecording.value = true;
-  isCompressing.value = false;
-  isStopping = false;
-  imageCount.value = 0;
+  // Reiniciem totes les variables per a una gravació neta
+  estaGravant.value = true;
+  estaComprimint.value = false;
+  estaEnPausa.value = false;
+  sEstaAturant = false;
+  compteFotos.value = 0;
   
   zip = new JSZip();
-  folder = zip.folder(nomGest.value);
+  carpeta = zip.folder(nomGest.value);
 
   const canvas = document.createElement('canvas');
   canvas.width = canvasWidth;
   canvas.height = canvasHeight;
   const ctx = canvas.getContext('2d');
 
-  // ... la resta del setInterval es queda exactament igual ...
-  intervalId = setInterval(() => {
-    if (isStopping) return;
+  // Funció que farà la foto
+  const capturarFotograma = () => {
+    if (sEstaAturant) return;
 
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     
     canvas.toBlob((blob) => {
       if (!blob) return;
 
-      folder.file(`foto_${imageCount.value}.jpg`, blob);
-      imageCount.value++;
+      carpeta.file(`foto_${compteFotos.value}.jpg`, blob);
+      compteFotos.value++;
 
-      if (imageCount.value >= maxImages && !isStopping) {
-        isStopping = true;
-        stopCapture();
+      // Comprovem si hem arribat a la meitat per fer la pausa
+      if (compteFotos.value === meitatFotos) {
+        ferPausa();
+      } 
+      // Comprovem si hem acabat del tot
+      else if (compteFotos.value >= maxFotos && !sEstaAturant) {
+        sEstaAturant = true;
+        aturarCaptura();
       }
     }, 'image/jpeg', 0.9);
+  };
 
-  }, 200);
+  // Funció per arrencar l'interval de fotos
+  const iniciarBucleFotos = () => {
+    idInterval = setInterval(capturarFotograma, 200);
+  };
+
+  // Funció per gestionar els 5 segons de pausa
+  const ferPausa = () => {
+    clearInterval(idInterval); // Parem les fotos
+    estaEnPausa.value = true;
+    segonsRestants.value = tempsPausa;
+
+    const compteEnrereId = setInterval(() => {
+      segonsRestants.value--;
+      if (segonsRestants.value <= 0) {
+        clearInterval(compteEnrereId);
+        estaEnPausa.value = false;
+        iniciarBucleFotos(); // Reprenem les fotos
+      }
+    }, 1000);
+  };
+
+  // Arrenquem la primera tanda de fotos
+  iniciarBucleFotos();
 };
 
-const stopCapture = async () => {
-  // 1. Paramos el bucle de fotos
-  clearInterval(intervalId);
-  
-  // 2. Avisamos a la interfaz que estamos comprimiendo
-  isCompressing.value = true; 
+// Funció per finalitzar i descarregar
+const aturarCaptura = async () => {
+  clearInterval(idInterval);
+  estaComprimint.value = true; 
   
   try {
-    // 3. Generamos el archivo ZIP de forma asíncrona
-    const content = await zip.generateAsync({ type: "blob" });
+    const contingut = await zip.generateAsync({ type: "blob" });
     
-    // 4. Truco para forzar la descarga en TODOS los navegadores
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(content);
+    const enllac = document.createElement('a');
+    const url = URL.createObjectURL(contingut);
     
-    link.href = url;
-    link.download = `dataset_${nomGest.value}.zip`;
+    enllac.href = url;
+    enllac.download = `dataset_${nomGest.value}.zip`;
     
-    document.body.appendChild(link); // Requisito vital en Firefox/Safari
-    link.click();                    // Hacemos el clic simulado
-    document.body.removeChild(link); // Limpiamos el HTML
+    document.body.appendChild(enllac); 
+    enllac.click();                    
+    document.body.removeChild(enllac); 
     
-    // Limpiamos la memoria del navegador 1 segundo después
     setTimeout(() => URL.revokeObjectURL(url), 1000); 
 
-    // 5. Reseteamos el componente
-    isRecording.value = false;
-    isCompressing.value = false;
+    // Resetegem la interfície
+    estaGravant.value = false;
+    estaComprimint.value = false;
     nomGest.value = '';
     
   } catch (error) {
-    console.error("Error al crear el ZIP: ", error);
-    alert("Hi ha hagut un error creant l'arxiu ZIP. Obre la consola per veure'l.");
-    isRecording.value = false;
-    isCompressing.value = false;
+    console.error("Error en crear el ZIP: ", error);
+    alert("Hi ha hagut un error creant l'arxiu ZIP. Obre la consola per veure'n els detalls.");
+    estaGravant.value = false;
+    estaComprimint.value = false;
   }
 };
 </script>
@@ -144,7 +188,9 @@ const stopCapture = async () => {
   border-radius: 10px;
   z-index: 100;
   width: 300px;
+  text-align: center;
 }
+
 .controls input, .controls button {
   width: 100%;
   padding: 10px;
@@ -152,8 +198,8 @@ const stopCapture = async () => {
   box-sizing: border-box;
   color: white; 
   background-color: #333333; 
-  border: 1px solid #555555; /* Un bordecito gris para que quede limpio */
-  border-radius: 5px; /* Bordes ligeramente redondeados */
+  border: 1px solid #555555; 
+  border-radius: 5px; 
 }
 
 .controls input::placeholder {
@@ -167,13 +213,23 @@ const stopCapture = async () => {
   cursor: pointer;
   font-weight: bold;
 }
+
 .controls button:disabled {
   background: #ccc;
+  cursor: not-allowed;
 }
+
 .recording h3 {
   color: #ff4444;
-  animation: blink 1s infinite;
+  animation: parpelleig 1s infinite;
 }
+
+.ma-indicador {
+  color: #FFD700;
+  font-size: 0.9em;
+  margin-bottom: 5px;
+}
+
 .progress-bar {
   width: 100%;
   height: 20px;
@@ -182,12 +238,34 @@ const stopCapture = async () => {
   overflow: hidden;
   margin: 10px 0;
 }
+
 .progress {
   height: 100%;
   background: #4CAF50;
   transition: width 0.2s;
 }
-@keyframes blink {
+
+.pausa-container h3 {
+  color: #FFD700; /* Groc atenció */
+  animation: none;
+}
+
+.compte-enrere {
+  font-size: 48px;
+  font-weight: bold;
+  color: #ffffff;
+  margin: 10px 0;
+}
+
+@keyframes parpelleig {
   50% { opacity: 0.5; }
+}
+</style>
+
+<style>
+body {
+  overflow: hidden !important;
+  touch-action: none; /* Bloqueja gestos tàctils a mòbils/tauletes */
+  height: 100vh;
 }
 </style>
