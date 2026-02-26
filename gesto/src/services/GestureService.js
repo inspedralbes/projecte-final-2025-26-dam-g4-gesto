@@ -12,7 +12,7 @@ export class GestureService {
         this.marcaTempsEstatAnterior = 0;
         this.MAX_TEMPS_ENTRE_PASSOS = 2000;
 
-        this.classesSignes = ["dit_abaix_nas", "mans_tancades", "none", "polze_costat"];
+        this.classesSignes = ["dit_abaix_nas", "dit_tocant_pit", "mans_tancades", "none", "polze_costat"];
     }
 
     async initialize() {
@@ -36,7 +36,7 @@ export class GestureService {
                     });
 
                     try {
-                        this.model = await tf.loadLayersModel('/model_web/model.json?t=' + Date.now());
+                        this.model = await tf.loadLayersModel('/entrenament_signes/model_web/model.json?t=' + Date.now());
                     } catch (errorModel) {
                         console.error("Error en carregar model.json:", errorModel);
                     }
@@ -112,6 +112,13 @@ export class GestureService {
                     return "Amic";
                 }
                 return "Mà detectada";
+            }
+
+            if (signeActual === "dit_tocant_pit") {
+                this.estatAnterior = null;
+                this.gestCongelat = "Jo";
+                this.tempsCongelat = timestamp;
+                return "Jo";
             }
         }
 
