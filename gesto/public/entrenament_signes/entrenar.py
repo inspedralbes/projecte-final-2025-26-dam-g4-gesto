@@ -9,15 +9,24 @@ import tensorflow as tf
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 import tensorflowjs as tfjs
+import json # <-- Añadido para exportar las clases
 
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 
-# 1. CONFIGURACIÓ
+# 1. CONFIGURACIÓ AUTOMÀTICA
 DIRECTORI_DATASET = 'dataset'
-CLASSES = ['dit_abaix_nas', 'mans_tancades', 'none', 'polze_costat']
 MODEL_TASK_PATH = 'hand_landmarker.task'
+RUTA_EXPORTACIO = '../model_web' # <-- Ruta directa al frontend
+
+# Detecta las clases automáticamente leyendo los nombres de las carpetas dentro de 'dataset'
+CLASSES = [nom for nom in os.listdir(DIRECTORI_DATASET) if os.path.isdir(os.path.join(DIRECTORI_DATASET, nom))]
+print(f"Classes detectades automàticament: {CLASSES}")
+
+if len(CLASSES) < 2:
+    print("ERROR: Necessites almenys 2 carpetes de gestos diferents dins de 'dataset' per entrenar.")
+    exit()
 
 # 2. DESCARREGAR EL MODEL BASE DE MEDIAPIPE (si no existeix)
 if not os.path.exists(MODEL_TASK_PATH):
@@ -37,10 +46,6 @@ etiquetes = []
 print("\n--- FASE 1: Extracció de coordenades amb MediaPipe Tasks Vision ---")
 for classe in CLASSES:
     ruta_classe = os.path.join(DIRECTORI_DATASET, classe)
-    if not os.path.exists(ruta_classe):
-        print(f"Carpeta no trobada: {ruta_classe}")
-        continue
-        
     imatges = os.listdir(ruta_classe)
     print(f"Processant {len(imatges)} fotos de la classe '{classe}'...")
     
@@ -75,22 +80,26 @@ encoder = LabelEncoder()
 y_codificat = encoder.fit_transform(y)
 y_categoric = tf.keras.utils.to_categorical(y_codificat)
 
-print(f"L'ordre de les teves classes al JS haurà de ser: {list(encoder.classes_)}")
-
 X_train, X_test, y_train, y_test = train_test_split(X, y_categoric, test_size=0.2, random_state=42)
 
-# Model Seqüencial net (ara funcionarà perquè estem en Legacy Keras)
 model = tf.keras.Sequential([
     tf.keras.layers.Dense(128, activation='relu', input_shape=(63,)),
     tf.keras.layers.Dropout(0.2),
     tf.keras.layers.Dense(64, activation='relu'),
-    tf.keras.layers.Dense(len(list(encoder.classes_)), activation='softmax')
+    tf.keras.layers.Dense(len(CLASSES), activation='softmax')
 ])
 
 model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 model.fit(X_train, y_train, epochs=50, validation_data=(X_test, y_test))
 
-print("\n--- FASE 3: Exportació per a la web ---")
-ruta_exportacio = "model_web"
-tfjs.converters.save_keras_model(model, ruta_exportacio)
-print(f"Model exportat correctament a la carpeta '{ruta_exportacio}'!")
+print("\n--- FASE 3: Exportació Automàtica per a la Web ---")
+# 1. Guardar el model sobrescribiendo el antiguo en la carpeta public/model_web
+tfjs.converters.save_keras_model(model, RUTA_EXPORTACIO)
+
+# 2. Generar el archivo classes.json
+ruta_json = os.path.join(RUTA_EXPORTACIO, "classes.json")
+with open(ruta_json, "w") as f:
+    json.dump(list(encoder.classes_), f)
+
+print(f"¡Model i etiquetes exportats correctament a '{RUTA_EXPORTACIO}'!")
+print("Ja pots recarregar la teva pàgina web, no has de tocar cap codi!")

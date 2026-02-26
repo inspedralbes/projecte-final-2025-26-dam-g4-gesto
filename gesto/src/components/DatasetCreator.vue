@@ -143,25 +143,32 @@ const iniciarCaptura = () => {
   iniciarBucleFotos();
 };
 
-// Funció per finalitzar i descarregar
+// Funció per finalitzar i ENVIAR al servidor
 const aturarCaptura = async () => {
   clearInterval(idInterval);
   estaComprimint.value = true; 
   
   try {
+    // Generem el ZIP a la memòria del navegador (això es manté igual)
     const contingut = await zip.generateAsync({ type: "blob" });
     
-    const enllac = document.createElement('a');
-    const url = URL.createObjectURL(contingut);
-    
-    enllac.href = url;
-    enllac.download = `dataset_${nomGest.value}.zip`;
-    
-    document.body.appendChild(enllac); 
-    enllac.click();                    
-    document.body.removeChild(enllac); 
-    
-    setTimeout(() => URL.revokeObjectURL(url), 1000); 
+    // Preparem el "paquet" (FormData) per enviar-lo per xarxa al teu backend
+    const formData = new FormData();
+    formData.append('file', contingut, `dataset_${nomGest.value}.zip`);
+    formData.append('gesto', nomGest.value); // Li diem al backend com es diu el gest
+
+    console.log("Enviant dades al servidor Node.js...");
+
+    const resposta = await fetch('http://localhost:5000/api/upload-dataset', {
+      method: 'POST',
+      body: formData
+    });
+
+    if (resposta.ok) {
+        alert(`Èxit! Les fotos de "${nomGest.value}" s'han enviat al backend i s'estan entrenant.`);
+    } else {
+        alert("Error del servidor en rebre les fotos.");
+    }
 
     // Resetegem la interfície
     estaGravant.value = false;
@@ -169,8 +176,8 @@ const aturarCaptura = async () => {
     nomGest.value = '';
     
   } catch (error) {
-    console.error("Error en crear el ZIP: ", error);
-    alert("Hi ha hagut un error creant l'arxiu ZIP. Obre la consola per veure'n els detalls.");
+    console.error("Error en enviar el ZIP: ", error);
+    alert("Hi ha hagut un error en enviar les dades. Assegura't que el servidor Node està en marxa.");
     estaGravant.value = false;
     estaComprimint.value = false;
   }
