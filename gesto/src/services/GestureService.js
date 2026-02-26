@@ -12,7 +12,7 @@ export class GestureService {
         this.marcaTempsEstatAnterior = 0;
         this.MAX_TEMPS_ENTRE_PASSOS = 2000;
 
-        this.classesSignes = ["dit_abaix_nas", "none", "polze_costat"];
+        this.classesSignes = ["dit_abaix_nas", "mans_tancades", "none", "polze_costat"];
     }
 
     async initialize() {
@@ -32,7 +32,7 @@ export class GestureService {
                             delegate: "GPU"
                         },
                         runningMode: "VIDEO",
-                        numHands: 1
+                        numHands: 2
                     });
 
                     try {
@@ -100,6 +100,16 @@ export class GestureService {
                     this.gestCongelat = "Ell";
                     this.tempsCongelat = timestamp;
                     return "Ell";
+                }
+                return "Mà detectada";
+            }
+
+            if (signeActual === "mans_tancades") {
+                if (this.estatAnterior === "dit_abaix_nas" && (timestamp - this.marcaTempsEstatAnterior < this.MAX_TEMPS_ENTRE_PASSOS)) {
+                    this.estatAnterior = null;
+                    this.gestCongelat = "Amic";
+                    this.tempsCongelat = timestamp;
+                    return "Amic";
                 }
                 return "Mà detectada";
             }

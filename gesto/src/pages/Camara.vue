@@ -52,12 +52,8 @@ const manosDetectadas = ref([]);
 const signoDetectado = ref('Iniciant IA...');
 let animationFrameId = null;
 
-// 👉 AQUESTA ÉS LA VARIABLE QUE ET FALTAVA!
 const mostrarEsquelet = ref(false);
-=======
-const signoDetectado = ref('Iniciando IA...');
 const lastSpokenSigno = ref(null);
-let animationFrameId = null;
 
 const speak = (text) => {
   if ('speechSynthesis' in window) {

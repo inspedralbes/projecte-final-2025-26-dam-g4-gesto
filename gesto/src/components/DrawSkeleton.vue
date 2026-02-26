@@ -1,3 +1,7 @@
+<template>
+  <canvas ref="canvasRef" class="skeleton-canvas" :class="{ 'espejo': esFrontal }"></canvas>
+</template>
+
 <script setup>
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
 
