@@ -2,32 +2,34 @@
   <div class="camera-container">
     <video ref="videoRef" autoplay muted playsinline class="fullscreen-video" :class="{ 'espejo': facingMode === 'user' }"></video>
     
-    <DrawSkeleton :handsData="manosDetectadas" :esFrontal="facingMode === 'user'" />
+    <DrawSkeleton 
+      class="skeleton-overlay"
+      v-if="mostrarEsquelet" 
+      :handsData="manosDetectadas" 
+      :esFrontal="facingMode === 'user'" 
+    />
 
     <div class="traduccion-hud" v-if="signoDetectado">
       <h1>{{ signoDetectado }}</h1>
     </div>
 
+    <DatasetCreator :videoElement="videoRef" />
+
     <div class="controls">
-      <button @click="goHome" class="control-btn" aria-label="Volver al inicio">
-        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24" fill="currentColor">
-          <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
-        </svg>
+      <button @click="goHome" class="control-btn" aria-label="Tornar a l'inici">
+        🏠
       </button>
 
-      <button @click="switchCamera" class="control-btn" aria-label="Cambiar cámara">
-        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24" fill="currentColor">
-          <path d="M20 5h-3.17L15 3H9L7.17 5H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-5 11.5V13H9v2.4L5.5 12 9 8.6V11h6V8.6l3.5 3.4-3.5 3.5z"/>
-        </svg>
+      <button @click="mostrarEsquelet = !mostrarEsquelet" class="control-btn" :class="{ 'actiu': mostrarEsquelet }" aria-label="Alternar esquelet">
+        👁️
+      </button>
+
+      <button @click="switchCamera" class="control-btn" aria-label="Canviar càmera">
+        🔄
       </button>
     </div>
 
     <p v-if="error" class="error-msg">{{ error }}</p>
-  </div>
-  <div>
-    <video ref="videoElement" autoplay playsinline></video>
-    
-    <DatasetCreator :videoElement="videoElement" />
   </div>
 </template>
 
@@ -47,8 +49,11 @@ let currentStream = null;
 
 const gestureService = new GestureService();
 const manosDetectadas = ref([]);
-const signoDetectado = ref('Iniciando IA...');
+const signoDetectado = ref('Iniciant IA...');
 let animationFrameId = null;
+
+// 👉 AQUESTA ÉS LA VARIABLE QUE ET FALTAVA!
+const mostrarEsquelet = ref(false);
 
 const startCamera = async () => {
   if (currentStream) {
@@ -98,13 +103,11 @@ const predictLoop = () => {
       signoDetectado.value = resultado.signo;
     } else {
       manosDetectadas.value = [];
-      signoDetectado.value = ""; 
+      signoDetectado.value = "Mà detectada"; 
     }
   }
   animationFrameId = requestAnimationFrame(predictLoop);
 };
-
-const videoElement = ref(null);
 
 onMounted(async () => {
   await gestureService.initialize();
@@ -131,16 +134,24 @@ onBeforeUnmount(() => {
 .fullscreen-video {
   width: 100%;
   height: 100%;
-  object-fit: cover; /* Cubre toda la pantalla */
+  object-fit: cover; 
   display: block;
 }
 
-/* NUEVO: Efecto espejo para cámara frontal */
 .espejo {
   transform: scaleX(-1);
 }
 
-/* NUEVO: Estilo para el texto de traducción flotante */
+.skeleton-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+}
+
 .traduccion-hud {
   position: absolute;
   top: 10%;
@@ -158,7 +169,6 @@ onBeforeUnmount(() => {
   font-size: 2rem;
 }
 
-/* Tus estilos originales se mantienen igual... */
 .controls {
   position: absolute;
   bottom: 40px;
@@ -182,10 +192,17 @@ onBeforeUnmount(() => {
   cursor: pointer;
   box-shadow: 0 4px 10px rgba(0,0,0,0.3);
   transition: transform 0.2s, background-color 0.2s;
+  font-size: 24px; /* Fa l'emoji més gran */
 }
 
-.control-btn svg { width: 28px; height: 28px; }
-.control-btn:active { transform: scale(0.95); background-color: rgba(255, 255, 255, 1); }
+.control-btn.actiu {
+  background-color: #4CAF50;
+}
+
+.control-btn:active { 
+  transform: scale(0.95); 
+  background-color: rgba(255, 255, 255, 1); 
+}
 
 .error-msg {
   position: absolute;
