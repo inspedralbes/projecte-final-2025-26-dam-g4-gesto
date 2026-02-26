@@ -54,6 +54,22 @@ let animationFrameId = null;
 
 // 👉 AQUESTA ÉS LA VARIABLE QUE ET FALTAVA!
 const mostrarEsquelet = ref(false);
+=======
+const signoDetectado = ref('Iniciando IA...');
+const lastSpokenSigno = ref(null);
+let animationFrameId = null;
+
+const speak = (text) => {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'ca-ES';
+    utterance.rate = 1.2;
+    window.speechSynthesis.speak(utterance);
+  } else {
+    console.warn("La síntesi de veu no és suportada en aquest navegador.");
+  }
+};
 
 const startCamera = async () => {
   if (currentStream) {
@@ -98,12 +114,23 @@ const predictLoop = () => {
   if (videoRef.value && videoRef.value.readyState === 4) {
     const resultado = gestureService.detect(videoRef.value, performance.now());
 
-    if (resultado) {
+    if (resultado && resultado.signo) {
       manosDetectadas.value = resultado.hands;
-      signoDetectado.value = resultado.signo;
+      const newSigno = resultado.signo;
+
+      if (newSigno !== signoDetectado.value) {
+        signoDetectado.value = newSigno;
+        // Solo hablar si el signo es nuevo y diferente al último que se habló
+        if (newSigno !== lastSpokenSigno.value) {
+          speak(newSigno);
+          lastSpokenSigno.value = newSigno;
+        }
+      }
     } else {
       manosDetectadas.value = [];
       signoDetectado.value = "Mà detectada"; 
+      signoDetectado.value = "";
+      lastSpokenSigno.value = null; // Reiniciar cuando no se detecta nada
     }
   }
   animationFrameId = requestAnimationFrame(predictLoop);
