@@ -59,7 +59,7 @@ const speak = (text) => {
   if ('speechSynthesis' in window) {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'ca-ES';
+    utterance.lang = 'es-ES';
     utterance.rate = 1.2;
     window.speechSynthesis.speak(utterance);
   } else {
