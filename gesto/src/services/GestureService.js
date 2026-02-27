@@ -4,15 +4,20 @@ export class GestureService {
         this.model = null;
         this.enExecucio = false;
 
-        this.gestCongelat = null;
-        this.tempsCongelat = 0;
-        this.DURADA_MISSATGE = 3000;
+        this.fraseActual = [];
+        this.potAfegirParaula = true;
+        this.tempsUltimaParaula = 0;
+        this.TEMPS_RESET_FRASE = 5000;
 
         this.estatAnterior = null;
         this.marcaTempsEstatAnterior = 0;
         this.MAX_TEMPS_ENTRE_PASSOS = 2000;
 
-        this.classesSignes = ["dit_abaix_nas", "dit_tocant_pit", "mans_tancades", "none", "polze_costat"];
+        this.ultimSigneDetectat = null;
+        this.comptadorContinuita = 0;
+        this.FRAMES_NECESSARIS = 4;
+
+        this.classesSignes = ["agafar_fi", "agafar_inici", "dit_abaix_nas", "dit_tocant_pit", "mans_tancades", "none", "polze_costat"];
     }
 
     async initialize() {
@@ -77,52 +82,93 @@ export class GestureService {
     }
 
     _analitzarMoviment(mans, timestamp) {
-        if (this.gestCongelat && (timestamp - this.tempsCongelat < this.DURADA_MISSATGE)) {
-            return this.gestCongelat;
-        } else {
-            this.gestCongelat = null;
+        if (this.fraseActual.length > 0 && (timestamp - this.tempsUltimaParaula > this.TEMPS_RESET_FRASE)) {
+            this.fraseActual = [];
+        }
+
+        if (this.estatAnterior && (timestamp - this.marcaTempsEstatAnterior > this.MAX_TEMPS_ENTRE_PASSOS)) {
+            this.estatAnterior = null;
         }
 
         if (mans.length > 0) {
-            const signeActual = this._predirSigne(mans[0]);
+            const signeM1 = this._predirSigne(mans[0]);
+            let signeM2 = (mans.length === 2) ? this._predirSigne(mans[1]) : null;
 
-            if (!signeActual || signeActual === "none") return "Mà detectada";
 
+            let signeActual = signeM1;
+
+            if (mans.length === 2 && (signeM1 === "mans_tancades" || signeM2 === "mans_tancades")) {
+                signeActual = "mans_tancades_doble";
+            }
+
+            if (signeActual === this.ultimSigneDetectat) {
+                this.comptadorContinuita++;
+            } else {
+                this.ultimSigneDetectat = signeActual;
+                this.comptadorContinuita = 1;
+            }
+
+            if (this.comptadorContinuita < this.FRAMES_NECESSARIS) {
+                return this.fraseActual.length > 0 ? this.fraseActual.join(" ") : "Esperant signes...";
+            }
+
+            if (signeActual === "none" || !signeActual) {
+                this.potAfegirParaula = true;
+                return this.fraseActual.length > 0 ? this.fraseActual.join(" ") : "Esperant signes...";
+            }
+
+            let novaParaula = null;
+
+            // GESTOS ESTÀTICS
+            if (signeActual === "dit_tocant_pit") {
+                this.estatAnterior = null;
+                novaParaula = "Jo";
+            }
+
+            // GESTOS DE SEQÜÈNCIA
             if (signeActual === "dit_abaix_nas") {
                 this.estatAnterior = "dit_abaix_nas";
                 this.marcaTempsEstatAnterior = timestamp;
-                return "Mà detectada";
             }
 
             if (signeActual === "polze_costat") {
-                if (this.estatAnterior === "dit_abaix_nas" && (timestamp - this.marcaTempsEstatAnterior < this.MAX_TEMPS_ENTRE_PASSOS)) {
+                if (this.estatAnterior === "dit_abaix_nas") {
+                    novaParaula = "Ell";
                     this.estatAnterior = null;
-                    this.gestCongelat = "Ell";
-                    this.tempsCongelat = timestamp;
-                    return "Ell";
                 }
-                return "Mà detectada";
             }
 
-            if (signeActual === "mans_tancades") {
-                if (this.estatAnterior === "dit_abaix_nas" && (timestamp - this.marcaTempsEstatAnterior < this.MAX_TEMPS_ENTRE_PASSOS)) {
+            if (signeActual === "mans_tancades_doble") {
+                if (this.estatAnterior === "dit_abaix_nas") {
+                    novaParaula = "Amic";
                     this.estatAnterior = null;
-                    this.gestCongelat = "Amic";
-                    this.tempsCongelat = timestamp;
-                    return "Amic";
                 }
-                return "Mà detectada";
             }
 
-            if (signeActual === "dit_tocant_pit") {
-                this.estatAnterior = null;
-                this.gestCongelat = "Jo";
-                this.tempsCongelat = timestamp;
-                return "Jo";
+            if (signeActual === "agafar_inici") {
+                this.estatAnterior = "agafar_inici";
+                this.marcaTempsEstatAnterior = timestamp;
             }
+
+            if (signeActual === "agafar_fi") {
+                if (this.estatAnterior === "agafar_inici" && (timestamp - this.marcaTempsEstatAnterior < this.MAX_TEMPS_ENTRE_PASSOS)) {
+                    novaParaula = "Agafar";
+                    this.estatAnterior = null;
+                }
+            }
+
+            // AFEGIR LA PARAULA A LA FRASE
+            if (novaParaula && this.potAfegirParaula) {
+                this.fraseActual.push(novaParaula);
+                this.potAfegirParaula = false;
+                this.tempsUltimaParaula = timestamp;
+            }
+        } else {
+            // Si baixes les mans completament fora de la càmera
+            this.potAfegirParaula = true;
         }
 
-        return "Mà detectada";
+        return this.fraseActual.length > 0 ? this.fraseActual.join(" ") : "Esperant signes...";
     }
 
     detect(videoElement, timestamp) {
@@ -131,14 +177,10 @@ export class GestureService {
         try {
             const result = this.handLandmarker.detectForVideo(videoElement, timestamp);
 
-            if (result.landmarks && result.landmarks.length > 0) {
-                const signe = this._analitzarMoviment(result.landmarks, timestamp);
-                return { hands: result.landmarks, signo: signe };
-            }
+            const signe = this._analitzarMoviment(result.landmarks || [], timestamp);
 
-            if (this.gestCongelat && (timestamp - this.tempsCongelat < this.DURADA_MISSATGE)) {
-                return { hands: [], signo: this.gestCongelat };
-            }
+            return { hands: result.landmarks || [], signo: signe };
+
         } catch (error) {
         }
 
