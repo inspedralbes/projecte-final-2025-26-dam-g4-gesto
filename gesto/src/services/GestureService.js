@@ -12,7 +12,8 @@ export class GestureService {
         this.marcaTempsEstatAnterior = 0;
         this.MAX_TEMPS_ENTRE_PASSOS = 2000;
 
-        this.classesSignes = ["dit_abaix_nas", "mans_tancades", "none", "polze_costat"];
+        // LO DEJAMOS VACÍO PARA QUE LO RELLENE PYTHON
+        this.classesSignes = []; 
     }
 
     async initialize() {
@@ -35,11 +36,28 @@ export class GestureService {
                         numHands: 2
                     });
 
+                    // --- NUEVA CARGA DINÁMICA DE MODELO Y CLASES ---
                     try {
-                        this.model = await tf.loadLayersModel('/model_web/model.json?t=' + Date.now());
-                    } catch (errorModel) {
-                        console.error("Error en carregar model.json:", errorModel);
+                        const noCache = '?t=' + Date.now();
+                        // Nueva ruta dentro de entrenament_signes
+                        const basePath = '/entrenament_signes/model_web/'; 
+                        
+                        // 1. Cargamos el JSON de clases que genera Python
+                        const classesResponse = await fetch(basePath + 'classes.json' + noCache);
+                        if (classesResponse.ok) {
+                            this.classesSignes = await classesResponse.json();
+                            console.log("Clases cargadas correctamente desde Python:", this.classesSignes);
+                        } else {
+                            console.warn("No se encontró classes.json. ¿Has entrenado el modelo?");
+                        }
+                        
+                        // 2. Cargamos el modelo
+                        this.model = await tf.loadLayersModel(basePath + 'model.json' + noCache);
+                        
+                    } catch (errorCarga) {
+                        console.error("Error cargando el modelo o las clases:", errorCarga);
                     }
+                    // ------------------------------------------------
 
                     this.enExecucio = true;
                     resolve();
@@ -47,11 +65,10 @@ export class GestureService {
                     reject(error);
                 }
             };
-            script.onerror = () => reject(new Error('Error en carregar MediaPipe'));
+            script.onerror = () => reject(new Error('Error al cargar MediaPipe'));
             document.head.appendChild(script);
         });
     }
-
     _predirSigne(ma) {
         if (!this.model) return null;
 
@@ -77,6 +94,7 @@ export class GestureService {
     }
 
     _analitzarMoviment(mans, timestamp) {
+        // Mantenemos tu lógica de "congelar" el mensaje en pantalla por unos segundos
         if (this.gestCongelat && (timestamp - this.tempsCongelat < this.DURADA_MISSATGE)) {
             return this.gestCongelat;
         } else {
@@ -84,35 +102,17 @@ export class GestureService {
         }
 
         if (mans.length > 0) {
+            // Aquí la IA adivina el gesto (ej: "DOS", "L", "polze_costat")
             const signeActual = this._predirSigne(mans[0]);
 
             if (!signeActual || signeActual === "none") return "Mà detectada";
 
-            if (signeActual === "dit_abaix_nas") {
-                this.estatAnterior = "dit_abaix_nas";
-                this.marcaTempsEstatAnterior = timestamp;
-                return "Mà detectada";
-            }
-
-            if (signeActual === "polze_costat") {
-                if (this.estatAnterior === "dit_abaix_nas" && (timestamp - this.marcaTempsEstatAnterior < this.MAX_TEMPS_ENTRE_PASSOS)) {
-                    this.estatAnterior = null;
-                    this.gestCongelat = "Ell";
-                    this.tempsCongelat = timestamp;
-                    return "Ell";
-                }
-                return "Mà detectada";
-            }
-
-            if (signeActual === "mans_tancades") {
-                if (this.estatAnterior === "dit_abaix_nas" && (timestamp - this.marcaTempsEstatAnterior < this.MAX_TEMPS_ENTRE_PASSOS)) {
-                    this.estatAnterior = null;
-                    this.gestCongelat = "Amic";
-                    this.tempsCongelat = timestamp;
-                    return "Amic";
-                }
-                return "Mà detectada";
-            }
+            // ¡MAGIA AQUÍ! 
+            // En lugar de hacer mil comprobaciones, si la IA detecta cualquier gesto
+            // que NO sea 'none', simplemente congelamos ese nombre y lo mostramos.
+            this.gestCongelat = signeActual;
+            this.tempsCongelat = timestamp;
+            return signeActual; 
         }
 
         return "Mà detectada";

@@ -6,7 +6,7 @@ services:
     volumes:
       - ./backend:/usr/src/app
       - /usr/src/app/node_modules
-      - ./public/entrenament_signes:/usr/src/gesto/public/entrenament_signes
+      - ./gesto/public/entrenament_signes:/usr/src/gesto/public/entrenament_signes
     env_file:
       - ./backend/.env
 

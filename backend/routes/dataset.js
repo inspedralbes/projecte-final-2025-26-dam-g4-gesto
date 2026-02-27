@@ -20,8 +20,7 @@ router.post('/upload-dataset', upload.single('file'), async (req, res) => {
 
         // Rutes relatives a l'estructura del projecte des de la carpeta routes
         const baseProjectDir = path.join(__dirname, '../../gesto/public/entrenament_signes');
-        const extractPath = path.join(baseProjectDir, 'dataset', gesto);
-        
+        const extractPath = path.join(baseProjectDir, 'dataset');        
         console.log(`Rebent fotos per al gest: '${gesto}'...`);
         // Descomprimir el ZIP
         await extract(zipPath, { dir: extractPath });
@@ -36,7 +35,7 @@ router.post('/upload-dataset', upload.single('file'), async (req, res) => {
         // Executar Python en segon pla
         console.log("Llançant procés d'entrenament amb Python...");
         
-        exec('python3 entrenar.py', { cwd: baseProjectDir }, (error, stdout, stderr) => {
+        exec('python entrenar.py', { cwd: baseProjectDir }, (error, stdout, stderr) => {
             if (error) {
                 console.error(`Error durant l'entrenament: ${error.message}`);
                 return;

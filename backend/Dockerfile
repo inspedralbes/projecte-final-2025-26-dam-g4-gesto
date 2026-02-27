@@ -1,28 +1,32 @@
-FROM node:22
+FROM python:3.10-slim
 
-WORKDIR /usr/src/app
+ENV PYTHONUNBUFFERED=1
 
-COPY package*.json ./
-# 1. Instalar Python 3, pip y librerías del sistema para procesar imágenes (MediaPipe/OpenCV)
+# Instal·lem les dependències del sistema
 RUN apt-get update && apt-get install -y \
-    python3 \
-    python3-pip \
+    curl \
     libgl1 \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-# 2. Instalar las librerías pesadas de Inteligencia Artificial
-# (Usamos --break-system-packages porque las versiones nuevas de Node/Debian lo requieren al instalar pip global)
-RUN pip3 install --no-cache-dir --break-system-packages \
-    tensorflow \
+# Instal·lem Node.js versió 22
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get install -y nodejs
+
+# Instal·lem TOTA la intel·ligència artificial (es baixarà ràpid perquè no compila)
+RUN pip install --no-cache-dir \
+    tensorflow==2.15.0 \
     tensorflowjs \
     mediapipe \
     scikit-learn \
     pandas
+
+WORKDIR /usr/src/app
+
+COPY package*.json ./
 RUN npm install
 
 COPY . .
 
 EXPOSE 5000
-
-CMD ["npm", "run", "dev"]
+CMD ["node", "server.js"]

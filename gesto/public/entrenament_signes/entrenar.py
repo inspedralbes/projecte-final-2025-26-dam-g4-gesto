@@ -18,7 +18,7 @@ from mediapipe.tasks.python import vision
 # 1. CONFIGURACIÓ AUTOMÀTICA
 DIRECTORI_DATASET = 'dataset'
 MODEL_TASK_PATH = 'hand_landmarker.task'
-RUTA_EXPORTACIO = '../model_web' # <-- Ruta directa al frontend
+RUTA_EXPORTACIO = 'model_web' # <-- Ruta directa al frontend
 
 # Detecta las clases automáticamente leyendo los nombres de las carpetas dentro de 'dataset'
 CLASSES = [nom for nom in os.listdir(DIRECTORI_DATASET) if os.path.isdir(os.path.join(DIRECTORI_DATASET, nom))]
@@ -78,7 +78,16 @@ if len(X) == 0:
 print("\n--- FASE 2: Entrenament del Model ---")
 encoder = LabelEncoder()
 y_codificat = encoder.fit_transform(y)
-y_categoric = tf.keras.utils.to_categorical(y_codificat)
+
+# 1. Comptem quantes classes REALS tenen coordenades vàlides
+numero_classes_reals = len(encoder.classes_)
+print(f"Classes finalment acceptades per a l'entrenament: {list(encoder.classes_)}")
+
+if numero_classes_reals < 2:
+    print("ERROR: Necessites almenys 2 gestos vàlids amb mans detectades per poder entrenar.")
+    exit()
+
+y_categoric = tf.keras.utils.to_categorical(y_codificat, num_classes=numero_classes_reals)
 
 X_train, X_test, y_train, y_test = train_test_split(X, y_categoric, test_size=0.2, random_state=42)
 
@@ -86,7 +95,8 @@ model = tf.keras.Sequential([
     tf.keras.layers.Dense(128, activation='relu', input_shape=(63,)),
     tf.keras.layers.Dropout(0.2),
     tf.keras.layers.Dense(64, activation='relu'),
-    tf.keras.layers.Dense(len(CLASSES), activation='softmax')
+    # 2. CANVI CLAU: Utilitzem el número real de classes detectades en lloc de les carpetes
+    tf.keras.layers.Dense(numero_classes_reals, activation='softmax')
 ])
 
 model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
