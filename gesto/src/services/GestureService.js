@@ -17,7 +17,7 @@ export class GestureService {
         this.comptadorContinuita = 0;
         this.FRAMES_NECESSARIS = 4;
 
-        this.classesSignes = ["agafar_fi", "agafar_inici", "dit_abaix_nas", "dit_tocant_pit", "mans_tancades", "none", "polze_costat", "tenir"];
+        this.classesSignes = ["1", "agafar_fi", "agafar_inici", "dit_abaix_nas", "dit_tocant_pit", "mans_tancades", "none", "polze_costat", "tenir"];
     }
 
     async initialize() {
@@ -133,6 +133,11 @@ export class GestureService {
             if (signeActual === "tenir") {
                 this.estatAnterior = null;
                 novaParaula = "Tenir";
+            }
+
+            if (signeActual === "1") {
+                this.estatAnterior = null;
+                novaParaula = "1";
             }
 
             // GESTOS DE SEQÜÈNCIA
