@@ -9,8 +9,6 @@
           GESTO
         </div>
         <div class="nav-links">
-          <button @click="simularNav('aprendre')" class="btn-aprendre">TUTORIAL</button>
-
           <template v-if="user">
             <span class="user-greeting">Hola, {{ user.name }}</span>
             <button @click="simularNav('logout')" class="btn-logout">TANCAR SESSIÓ</button>
@@ -47,34 +45,51 @@
 
         <section class="info-section">
           <div class="container">
+            
             <div class="info-grid">
               <div class="visual-placeholder" data-aos="fade-right">
+                <img 
+                  src="https://www.magisnet.com/wp-content/uploads/2023/09/signos.jpg" 
+                  alt="Aprendre llengua de signes" 
+                  class="feature-image"
+                >
+              </div>
+              <div class="info-content" data-aos="fade-left">
+                <h2>Aprèn amb GESTO</h2>
+                <p>No només traduïm, t'ajudem a connectar. Practica el teu abecedari i frases quotidianes amb la nostra IA que et corregirà en temps real mentre aprens.</p>
+                <button class="btn-primary small" @click="simularNav('tutorial')">ACCEDIR AL TUTORIAL</button>
+              </div>
+            </div>
+
+            <div class="info-grid">
+              <div class="info-content" data-aos="fade-right">
+                <h2>La necessitat de comprendre</h2>
+                <p>En hospitals o situacions d'emergència, la manca d'intèrprets crea murs invisibles. GESTO elimina l'escletxa comunicativa quan més ho necessites.</p>
+              </div>
+              <div class="visual-placeholder" data-aos="fade-left">
                 <img 
                   src="https://www.assersum.com/content/images/2024/09/Sin-t-tulo-2.png" 
                   alt="Barreras de comunicación" 
                   class="feature-image"
                 >
               </div>
-              <div class="info-content" data-aos="fade-left">
-                <h2>La necessitat de comprendre</h2>
-                <p>En hospitals o situacions d'emergència, la manca d'intèrprets crea murs invisibles. GESTO elimina l'escletxa comunicativa quan més ho necessites.</p>
-              </div>
             </div>
 
-            <div class="info-grid reversed">
-              <div class="info-content" data-aos="fade-right">
-                <h2>Tecnologia invisible</h2>
-                <p>Sense sensors extra. Sense configuracions complexes. Només la càmera del teu mòbil i el nostre motor d'IA que tradueix gestos a paraules a l'instant.</p>
-                <button class="btn-outline" @click="simularNav('com-funciona')">VEURE COM FUNCIONA</button>
-              </div>
-              <div class="visual-placeholder" data-aos="fade-left">
+            <div class="info-grid">
+              <div class="visual-placeholder" data-aos="fade-right">
                  <img 
-                  src="https://i.blogs.es/2b36a7/algoritmo/450_1000.png" 
+                  src="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fepgmhwtajlp6xbx5ckvm.png" 
                   alt="Intel·ligència Artificial i Algoritmes" 
                   class="feature-image"
                 >
               </div>
+              <div class="info-content" data-aos="fade-left">
+                <h2>Tecnologia invisible</h2>
+                <p>Sense sensors extra. Sense configuracions complexes. Només la càmera del teu mòbil i el nostre motor d'IA que tradueix gestos a paraules a l'instant.</p>
+                <button class="btn-outline" @click="simularNav('com-funciona')">VEURE COM FUNCIONA</button>
+              </div>
             </div>
+
           </div>
         </section>
 
@@ -132,7 +147,6 @@
               <p>A l'instant, els gestos es converteixen en text a la pantalla com si fossin subtitols en temps real.</p>
             </div>
           </div>
-
         </div>
       </div>
 
@@ -183,30 +197,20 @@ export default {
       this.$router.push('/');
     },
     simularNav(desti) {
-      if (desti === 'aprendre') {
-        // Redirige a la nueva página usando Vue Router
-        this.$router.push('/aprendre');
-      } else if (desti === 'traductor') {
+      if (desti === 'traductor') {
         this.$router.push('/Camara');
-      } else if (desti === 'home') {
-        this.paginaActual = 'home';
-        if (this.$route.path !== '/') {
-            this.$router.push('/');
-        }
       } else if (desti === 'login') {
         this.$router.push('/login');
       } else if (desti === 'registre') {
         this.$router.push('/register');
-      } else if (desti === 'logout') {
-        this.logout();
-      } else if (desti === 'com-funciona') {
-         this.paginaActual = desti;
-         setTimeout(() => {
-            window.scrollTo(0,0);
-            AOS.refresh();
-         }, 100);
+      } else if (desti === 'tutorial') {
+        this.$router.push('/aprendre');
       } else {
-        alert('Navegant a: ' + desti);
+        this.paginaActual = desti;
+        setTimeout(() => {
+          window.scrollTo(0,0);
+          AOS.refresh();
+        }, 100);
       }
     }
   }
@@ -250,20 +254,6 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 .btn-logout { background: none; border: 1px solid #333; color: #A0A0A0; font-weight: 600; cursor: pointer; padding: 8px 16px; border-radius: 4px; font-size: 0.9rem; transition: all 0.3s; }
 .btn-logout:hover { border-color: #ffca28; color: #ffca28; }
 
-.btn-aprendre {
-  color: white;
-  border: 1px solid white;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-weight: 800;
-  margin: 12px;
-  background: transparent;
-  transition: background 0.3s ease;
-}
-.btn-aprendre:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
 .hero { height: 85vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; position: relative; background: radial-gradient(circle at center, #1e1e1e 0%, #121212 70%); }
 .hero h1 { font-size: 3.5rem; font-weight: 800; line-height: 1.2; margin-bottom: 20px; background: linear-gradient(to right, #ffffff, #a0a0a0); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
 .hero p { font-size: 1.2rem; color: #A0A0A0; max-width: 600px; margin: 0 auto 40px auto; }
@@ -271,18 +261,19 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 
 .btn-primary { background-color: #00BFFF; color: #000; padding: 16px 40px; font-size: 1.1rem; font-weight: 700; border: none; border-radius: 4px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 0 20px rgba(0, 191, 255, 0.2); text-transform: uppercase; letter-spacing: 1px; }
 .btn-primary:hover { background-color: #33CFFF; box-shadow: 0 0 30px rgba(0, 191, 255, 0.4); transform: translateY(-2px); }
+.btn-primary.small { padding: 12px 24px; font-size: 0.9rem; margin-top: 10px; }
 
 .btn-outline { border: 1px solid #333; background: transparent; color: #fff; padding: 12px 24px; border-radius: 4px; cursor: pointer; font-weight: 600; margin-top: 20px; font-size: 0.9rem; }
 .btn-outline:hover { border-color: #fff; }
 
 .info-section { padding: 100px 0; background-color: #0f0f0f; }
-.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; margin-bottom: 100px; }
-.info-content h2 { font-size: 2.5rem; margin-bottom: 20px; color: #fff; }
-.info-content p { color: #888; margin-bottom: 30px; font-size: 1.1rem; }
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; margin-bottom: 120px; }
 
-.visual-placeholder { width: 100%; height: 350px; background: linear-gradient(45deg, #1a1a1a, #252525); border-radius: 8px; display: flex; justify-content: center; align-items: center; border: 1px solid #333; position: relative; overflow: hidden; }
-.feature-image { width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0.8; transition: opacity 0.3s ease; }
-.visual-placeholder:hover .feature-image { opacity: 1; }
+.info-content h2 { font-size: 2.5rem; margin-bottom: 20px; color: #fff; font-weight: 800; }
+.info-content p { color: #888; margin-bottom: 30px; font-size: 1.1rem; max-width: 500px; }
+
+.visual-placeholder { width: 100%; height: 400px; background: #1a1a1a; border-radius: 12px; overflow: hidden; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.feature-image { width: 100%; height: 100%; object-fit: cover; opacity: 0.9; }
 
 footer { padding: 60px 0; text-align: center; border-top: 1px solid #1f1f1f; background-color: #121212; }
 .footer-cta { color: #fff; font-size: 1.2rem; margin-bottom: 20px; }
@@ -291,103 +282,37 @@ footer { padding: 60px 0; text-align: center; border-top: 1px solid #1f1f1f; bac
 .footer-links a:hover { color: #00BFFF; }
 .separator { color: #333; }
 
-
-.how-it-works-view {
-  min-height: 100vh;
-  padding-bottom: 80px;
-}
-
-.btn-back {
-  background: none;
-  border: none;
-  color: #666;
-  font-size: 1rem;
-  cursor: pointer;
-  margin: 20px 0;
-  display: inline-flex;
-  align-items: center;
-  transition: color 0.3s;
-}
+/* VISTAS INTERNAS */
+.how-it-works-view, .tutorial-view { min-height: 100vh; padding-bottom: 80px; }
+.btn-back { background: none; border: none; color: #666; font-size: 1rem; cursor: pointer; margin: 20px 0; display: inline-flex; align-items: center; transition: color 0.3s; }
 .btn-back:hover { color: #00BFFF; }
-
-.section-header {
-  text-align: center;
-  margin-bottom: 40px;
-}
-.section-header h1 {
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: #fff;
-  margin-bottom: 10px;
-}
+.section-header { text-align: center; margin-bottom: 40px; }
+.section-header h1 { font-size: 2.5rem; color: #fff; font-weight: 800; }
 .text-highlight { color: #00BFFF; }
-.subtitle { color: #888; font-size: 1.1rem; }
 
-.gif-container {
-  max-width: 600px;
-  margin: 0 auto 60px auto;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 0 40px rgba(0, 191, 255, 0.1);
-  border: 1px solid #333;
-  background: #000;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
+.gif-container { max-width: 600px; margin: 0 auto 60px auto; border-radius: 12px; overflow: hidden; border: 1px solid #333; background: #000; }
+.demo-gif { width: 100%; height: auto; display: block; }
 
-.demo-gif {
-  width: 100%;
-  height: auto;
-  max-height: 500px; 
-  display: block;
-}
+.steps-explanation { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; max-width: 1000px; margin: 0 auto; }
+.step-item { background: #1a1a1a; padding: 30px; border-radius: 8px; border: 1px solid #2a2a2a; text-align: center; }
+.step-number { font-family: 'Roboto Mono', monospace; font-size: 2rem; color: #00BFFF; margin-bottom: 10px; opacity: 0.5; }
 
-.steps-explanation {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 30px;
-  max-width: 1000px;
-  margin: 0 auto;
-}
-
-.step-item {
-  background: #1a1a1a;
-  padding: 30px;
-  border-radius: 8px;
-  border: 1px solid #2a2a2a;
-  text-align: center;
-  transition: transform 0.3s;
-}
-.step-item:hover {
-  transform: translateY(-5px);
-  border-color: #00BFFF;
-}
-
-.step-number {
-  font-family: 'Roboto Mono', monospace;
-  font-size: 2.5rem;
-  font-weight: bold;
-  color: rgba(0, 191, 255, 0.2);
-  margin-bottom: 15px;
-}
-
-.step-item h3 {
-  color: #fff;
-  font-size: 1.3rem;
-  margin-bottom: 15px;
-}
-.step-item p {
-  color: #aaa;
-  font-size: 0.95rem;
-  line-height: 1.5;
-}
-
+/* RESPONSIVE MÓVIL */
 @media (max-width: 768px) {
   .hero h1 { font-size: 2.5rem; }
-  .info-grid { grid-template-columns: 1fr; }
-  .info-grid.reversed { display: flex; flex-direction: column-reverse; gap: 30px; }
-  .visual-placeholder { height: 250px; }
+  
+  /* Convertimos la grid en flex column para móviles */
+  .info-grid { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 30px;
+  }
+  
+  /* order: -1 asegura que la imagen SIEMPRE esté arriba del texto en móvil */
+  .visual-placeholder { 
+    height: 250px; 
+    order: -1; 
+  }
   
   .steps-explanation { grid-template-columns: 1fr; }
 }
