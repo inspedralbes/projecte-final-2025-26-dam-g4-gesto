@@ -125,6 +125,11 @@ export class GestureService {
                 novaParaula = "Jo";
             }
 
+            if (signeActual === "mans_tancades_doble") {
+                this.estatAnterior = null;
+                novaParaula = "Amic";
+            }
+
             if (signeActual === "tenir") {
                 this.estatAnterior = null;
                 novaParaula = "Tenir";
@@ -139,13 +144,6 @@ export class GestureService {
             if (signeActual === "polze_costat") {
                 if (this.estatAnterior === "dit_abaix_nas") {
                     novaParaula = "Ell";
-                    this.estatAnterior = null;
-                }
-            }
-
-            if (signeActual === "mans_tancades_doble") {
-                if (this.estatAnterior === "dit_abaix_nas") {
-                    novaParaula = "Amic";
                     this.estatAnterior = null;
                 }
             }
