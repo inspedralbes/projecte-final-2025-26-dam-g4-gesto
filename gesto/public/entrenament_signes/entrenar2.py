@@ -109,17 +109,19 @@ y_categoric = tf.keras.utils.to_categorical(y_codificat, num_classes=numero_clas
 X_train, X_test, y_train, y_test = train_test_split(X, y_categoric, test_size=0.2, random_state=42)
 
 
+# --- XARXA NEURONAL MILLORADA I MÉS PROFUNDA ---
 model = tf.keras.Sequential([
-   tf.keras.layers.Dense(128, activation='relu', input_shape=(63,)),
+   tf.keras.layers.Dense(256, activation='relu', input_shape=(63,)),
+   tf.keras.layers.Dropout(0.3), # El Dropout evita que la IA memorice las fotos exactas
+   tf.keras.layers.Dense(128, activation='relu'),
    tf.keras.layers.Dropout(0.2),
    tf.keras.layers.Dense(64, activation='relu'),
-   # 2. CANVI CLAU: Utilitzem el número real de classes detectades en lloc de les carpetes
    tf.keras.layers.Dense(numero_classes_reals, activation='softmax')
 ])
 
-
+# Ajustamos cómo aprende y le damos más tiempo de estudio (100 epochs en lugar de 50)
 model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-model.fit(X_train, y_train, epochs=50, validation_data=(X_test, y_test))
+model.fit(X_train, y_train, epochs=100, batch_size=32, validation_data=(X_test, y_test))
 
 
 print("\n--- FASE 3: Exportació Automàtica per a la Web ---")
