@@ -16,7 +16,7 @@ from mediapipe.tasks.python import vision
 
 # 1. CONFIGURACIÓ
 DIRECTORI_DATASET = 'dataset'
-CLASSES = ['0', '1', 'agafar_fi', 'agafar_inici', 'dit_abaix_nas', 'dit_tocant_pit', 'hola', 'mans_tancades', 'none', 'polze_costat', 'tenir']
+CLASSES = ['0', '1', 'adeu_inici', 'agafar_fi', 'agafar_inici', 'dit_abaix_nas', 'dit_tocant_pit', 'hola', 'mans_tancades', 'none', 'polze_costat', 'tenir']
 MODEL_TASK_PATH = 'hand_landmarker.task'
 
 # 2. DESCARREGAR EL MODEL BASE DE MEDIAPIPE (si no existeix)

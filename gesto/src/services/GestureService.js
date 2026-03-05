@@ -17,7 +17,7 @@ export class GestureService {
         this.comptadorContinuita = 0;
         this.FRAMES_NECESSARIS = 4;
 
-        this.classesSignes = ["0", "1", "agafar_fi", "agafar_inici", "dit_abaix_nas", "dit_tocant_pit", "hola", "mans_tancades", "none", "polze_costat", "tenir"];
+        this.classesSignes = ["0", "1", "adeu_inici", "agafar_fi", "agafar_inici", "dit_abaix_nas", "dit_tocant_pit", "hola", "mans_tancades", "none", "polze_costat", "tenir"];
     }
 
     async initialize() {
@@ -151,15 +151,24 @@ export class GestureService {
             }
 
             // GESTOS DE SEQÜÈNCIA
+            if (signeActual === "adeu_inici") {
+                this.estatAnterior = "adeu_inici";
+                this.marcaTempsEstatAnterior = timestamp;
+            }
+            
             if (signeActual === "dit_abaix_nas") {
                 this.estatAnterior = "dit_abaix_nas";
                 this.marcaTempsEstatAnterior = timestamp;
             }
 
             if (signeActual === "polze_costat") {
-                if (this.estatAnterior === "dit_abaix_nas") {
+                if (this.estatAnterior === "dit_abaix_nas" && (timestamp - this.marcaTempsEstatAnterior < this.MAX_TEMPS_ENTRE_PASSOS)) {
                     novaParaula = "Ell";
-                    this.estatAnterior = null;
+                    this.estatAnterior = null; 
+                }
+                else if (this.estatAnterior === "adeu_inici" && (timestamp - this.marcaTempsEstatAnterior < this.MAX_TEMPS_ENTRE_PASSOS)) {
+                    novaParaula = "Adeu";
+                    this.estatAnterior = null; 
                 }
             }
 
