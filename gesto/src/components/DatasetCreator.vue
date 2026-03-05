@@ -2,24 +2,13 @@
   <div class="dataset-creator">
     <div v-if="!estaGravant" class="controls">
       <h3>Crear Dataset de Gestos</h3>
-      <input v-model="nomGest" type="text" placeholder="Nom del gest (ex: dit_abaix_nas, polze_costat)" />
+      <input v-model="nomGest" type="text" placeholder="Nom del gest (ex: DOS, TRES)" />
       <button @click="iniciarCaptura" :disabled="!nomGest">
         Gravar 200 fotos (Dreta i Esquerra)
       </button>
     </div>
 
-    <div v-else-if="estaComprimint" class="recording">
-      <h3>Creant l'arxiu ZIP...</h3>
-      <p>Espera un moment, si us plau 📦</p>
-    </div>
-
-    <div v-else-if="estaEnPausa" class="recording pausa-container">
-      <h3>Canvia de mà! ✋🔄🤚</h3>
-      <p>La gravació es reprendrà en:</p>
-      <div class="compte-enrere">{{ segonsRestants }}</div>
-    </div>
-
-    <div v-else class="recording">
+    <div v-else-if="estaGravant && !estaComprimint && !estaEnPausa" class="recording">
       <h3>Gravant "{{ nomGest }}"...</h3>
       <p>Mou la mà lentament (canvia la distància i l'angle)</p>
       <p v-if="compteFotos < meitatFotos" class="ma-indicador">👉 Fent servir la <b>PRIMERA MÀ</b></p>
@@ -30,6 +19,17 @@
       </div>
       <p>{{ compteFotos }} / {{ maxFotos }} fotos</p>
     </div>
+
+    <div v-else-if="estaEnPausa" class="recording pausa-container">
+      <h3>Canvia de mà! ✋🔄🤚</h3>
+      <p>La gravació es reprendrà en:</p>
+      <div class="compte-enrere">{{ segonsRestants }}</div>
+    </div>
+
+    <div v-else-if="estaComprimint" class="recording">
+      <h3>Processant l'arxiu ZIP...</h3>
+      <p>Espera un moment, si us plau 📦</p>
+    </div>
   </div>
 </template>
 
@@ -37,14 +37,18 @@
 import { ref } from 'vue';
 import JSZip from 'jszip';
 
+// AÑADIMOS LA VARIABLE 'usantIAv2'
 const props = defineProps({
   videoElement: {
     type: HTMLVideoElement,
     default: null
+  },
+  usantIAv2: {
+    type: Boolean,
+    default: true
   }
 });
 
-// Variables d'estat reactives
 const nomGest = ref('');
 const estaGravant = ref(false);
 const estaComprimint = ref(false); 
@@ -53,16 +57,14 @@ const estaEnPausa = ref(false);
 const compteFotos = ref(0);
 const maxFotos = 200; 
 const meitatFotos = 100;
-const tempsPausa = 5; // Segons de pausa
+const tempsPausa = 5; 
 const segonsRestants = ref(0);
 
-// Variables internes
 let idInterval = null;
 let zip = null;
 let carpeta = null;
 let sEstaAturant = false;
 
-// Funció principal per començar
 const iniciarCaptura = () => {
   const video = document.querySelector('video');
 
@@ -79,7 +81,6 @@ const iniciarCaptura = () => {
     return;
   }
 
-  // Reiniciem totes les variables per a una gravació neta
   estaGravant.value = true;
   estaComprimint.value = false;
   estaEnPausa.value = false;
@@ -87,6 +88,7 @@ const iniciarCaptura = () => {
   compteFotos.value = 0;
   
   zip = new JSZip();
+  // Creem la carpeta dins del ZIP amb el nom del gest
   carpeta = zip.folder(nomGest.value);
 
   const canvas = document.createElement('canvas');
@@ -94,7 +96,6 @@ const iniciarCaptura = () => {
   canvas.height = canvasHeight;
   const ctx = canvas.getContext('2d');
 
-  // Funció que farà la foto
   const capturarFotograma = () => {
     if (sEstaAturant) return;
 
@@ -106,11 +107,9 @@ const iniciarCaptura = () => {
       carpeta.file(`foto_${compteFotos.value}.jpg`, blob);
       compteFotos.value++;
 
-      // Comprovem si hem arribat a la meitat per fer la pausa
       if (compteFotos.value === meitatFotos) {
         ferPausa();
       } 
-      // Comprovem si hem acabat del tot
       else if (compteFotos.value >= maxFotos && !sEstaAturant) {
         sEstaAturant = true;
         aturarCaptura();
@@ -118,14 +117,12 @@ const iniciarCaptura = () => {
     }, 'image/jpeg', 0.9);
   };
 
-  // Funció per arrencar l'interval de fotos
   const iniciarBucleFotos = () => {
     idInterval = setInterval(capturarFotograma, 200);
   };
 
-  // Funció per gestionar els 5 segons de pausa
   const ferPausa = () => {
-    clearInterval(idInterval); // Parem les fotos
+    clearInterval(idInterval);
     estaEnPausa.value = true;
     segonsRestants.value = tempsPausa;
 
@@ -134,45 +131,62 @@ const iniciarCaptura = () => {
       if (segonsRestants.value <= 0) {
         clearInterval(compteEnrereId);
         estaEnPausa.value = false;
-        iniciarBucleFotos(); // Reprenem les fotos
+        iniciarBucleFotos(); 
       }
     }, 1000);
   };
 
-  // Arrenquem la primera tanda de fotos
   iniciarBucleFotos();
 };
 
-// Funció per finalitzar i descarregar
 const aturarCaptura = async () => {
   clearInterval(idInterval);
   estaComprimint.value = true; 
   
   try {
-    const contingut = await zip.generateAsync({ type: "blob" });
+    const contingutZip = await zip.generateAsync({ type: "blob" });
     
-    const enllac = document.createElement('a');
-    const url = URL.createObjectURL(contingut);
-    
-    enllac.href = url;
-    enllac.download = `dataset_${nomGest.value}.zip`;
-    
-    document.body.appendChild(enllac); 
-    enllac.click();                    
-    document.body.removeChild(enllac); 
-    
-    setTimeout(() => URL.revokeObjectURL(url), 1000); 
+    // SI LA V2 (AUTOMÁTICA) ESTÁ ACTIVA -> ENVIAR AL SERVIDOR
+    if (props.usantIAv2) {
+      const formData = new FormData();
+      formData.append('file', contingutZip, `dataset_${nomGest.value}.zip`);
+      formData.append('gesto', nomGest.value);
 
-    // Resetegem la interfície
+      const resposta = await fetch('http://localhost:5000/api/upload-dataset', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!resposta.ok) {
+        throw new Error(`Error del servidor: ${resposta.status}`);
+      }
+
+      const resultat = await resposta.json();
+      console.log("Resposta del servidor:", resultat);
+      alert(`🤖 (IA V2) Molt bé! Fotos enviades al servidor. L'IA està aprenent el gest "${nomGest.value}" en segon pla.`);
+    
+    // SI LA V1 (ORIGINAL) ESTÁ ACTIVA -> DESCARGAR EN EL PC
+    } else {
+      const enllac = document.createElement('a');
+      const url = URL.createObjectURL(contingutZip);
+      
+      enllac.href = url;
+      enllac.download = `dataset_${nomGest.value}.zip`;
+      
+      document.body.appendChild(enllac); 
+      enllac.click();                    
+      document.body.removeChild(enllac); 
+      
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+  } catch (error) {
+    console.error("Error gestionant el ZIP: ", error);
+    alert("Hi ha hagut un error processant les fotos. Obre la consola per veure més detalls.");
+  } finally {
     estaGravant.value = false;
     estaComprimint.value = false;
     nomGest.value = '';
-    
-  } catch (error) {
-    console.error("Error en crear el ZIP: ", error);
-    alert("Hi ha hagut un error creant l'arxiu ZIP. Obre la consola per veure'n els detalls.");
-    estaGravant.value = false;
-    estaComprimint.value = false;
   }
 };
 </script>
@@ -246,7 +260,7 @@ const aturarCaptura = async () => {
 }
 
 .pausa-container h3 {
-  color: #FFD700; /* Groc atenció */
+  color: #FFD700;
   animation: none;
 }
 
@@ -265,7 +279,7 @@ const aturarCaptura = async () => {
 <style>
 body {
   overflow: hidden !important;
-  touch-action: none; /* Bloqueja gestos tàctils a mòbils/tauletes */
+  touch-action: none;
   height: 100vh;
 }
 </style>

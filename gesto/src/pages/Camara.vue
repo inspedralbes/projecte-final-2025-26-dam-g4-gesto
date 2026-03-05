@@ -11,9 +11,10 @@
 
     <div class="traduccion-hud" v-if="signoDetectado">
       <h1>{{ signoDetectado }}</h1>
+      <span class="badge-ia">{{ usantIAv2 ? 'IA Automàtica (V2)' : 'IA Original (V1)' }}</span>
     </div>
 
-    <DatasetCreator :videoElement="videoRef" />
+    <DatasetCreator :videoElement="videoRef" :usantIAv2="usantIAv2" />
 
     <div class="controls">
       <button @click="goHome" class="control-btn" aria-label="Tornar a l'inici">
@@ -27,6 +28,10 @@
       <button @click="switchCamera" class="control-btn" aria-label="Canviar càmera">
         🔄
       </button>
+
+      <button @click="canviarIA" class="control-btn" :class="{ 'actiu': usantIAv2 }" aria-label="Canviar IA">
+        🧠
+      </button>
     </div>
 
     <p v-if="error" class="error-msg">{{ error }}</p>
@@ -36,7 +41,11 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
-import { GestureService } from '../services/GestureService'; 
+
+// IMPORTAMOS LOS DOS ARCHIVOS, PONIÉNDOLES NOMBRES DISTINTOS
+import { GestureService as GestureServiceOriginal } from '../services/GestureService'; 
+import { GestureService as GestureServiceV2 } from '../services/gestureservices2'; 
+
 import DrawSkeleton from '../components/DrawSkeleton.vue';
 import DatasetCreator from '@/components/DatasetCreator.vue';
 
@@ -47,7 +56,10 @@ const error = ref(null);
 const facingMode = ref('user'); 
 let currentStream = null;
 
-const gestureService = new GestureService();
+// VARIABLE PARA SABER CUÁL ESTÁ ACTIVA (Por defecto, tu V2)
+const usantIAv2 = ref(true);
+let gestureService = null; // Lo dejamos vacío y lo llenamos luego
+
 const manosDetectadas = ref([]);
 const signoDetectado = ref('Iniciant IA...');
 let animationFrameId = null;
@@ -65,6 +77,21 @@ const speak = (text) => {
   } else {
     console.warn("La síntesi de veu no és suportada en aquest navegador.");
   }
+};
+
+// NUEVA FUNCIÓN PARA CARGAR LA IA ELEGIDA
+const carregarIA = async () => {
+  signoDetectado.value = 'Carregant model...';
+  // Si usantIAv2 es true, usa tu archivo. Si es false, usa el de tus compañeros.
+  gestureService = usantIAv2.value ? new GestureServiceV2() : new GestureServiceOriginal();
+  await gestureService.initialize();
+  signoDetectado.value = 'IA Llista!';
+};
+
+// FUNCIÓN DEL BOTÓN PARA CAMBIAR
+const canviarIA = async () => {
+  usantIAv2.value = !usantIAv2.value; // Alternamos de true a false
+  await carregarIA(); // Volvemos a cargar el modelo correcto
 };
 
 const startCamera = async () => {
@@ -107,7 +134,8 @@ const goHome = () => {
 };
 
 const predictLoop = () => {
-  if (videoRef.value && videoRef.value.readyState === 4) {
+  // Asegurarnos de que gestureService ya se ha cargado
+  if (gestureService && videoRef.value && videoRef.value.readyState === 4) {
     const resultado = gestureService.detect(videoRef.value, performance.now());
 
     if (resultado && resultado.signo) {
@@ -116,25 +144,23 @@ const predictLoop = () => {
 
       if (newSigno !== signoDetectado.value) {
         signoDetectado.value = newSigno;
-        // Solo hablar si el signo es nuevo y diferente al último que se habló
-        if (newSigno !== lastSpokenSigno.value) {
+        if (newSigno !== lastSpokenSigno.value && newSigno !== "Mà detectada") {
           speak(newSigno);
           lastSpokenSigno.value = newSigno;
         }
       }
     } else {
       manosDetectadas.value = [];
-      signoDetectado.value = "Mà detectada"; 
       signoDetectado.value = "";
-      lastSpokenSigno.value = null; // Reiniciar cuando no se detecta nada
+      lastSpokenSigno.value = null; 
     }
   }
   animationFrameId = requestAnimationFrame(predictLoop);
 };
 
 onMounted(async () => {
-  await gestureService.initialize();
-  startCamera();
+  await carregarIA(); // Primero cargamos el cerebro
+  startCamera();      // Luego encendemos los ojos
 });
 
 onBeforeUnmount(() => {
@@ -146,6 +172,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+/* TODO TU CSS SIGUE IGUAL, SOLO AÑADO ESTO PARA EL TEXTO DE LA IA */
 .camera-container {
   position: relative;
   width: 100vw;
@@ -186,10 +213,18 @@ onBeforeUnmount(() => {
   border-radius: 20px;
   z-index: 10;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 .traduccion-hud h1 {
   margin: 0;
   font-size: 2rem;
+}
+.badge-ia {
+  font-size: 0.8rem;
+  color: #a5d6a7;
+  font-weight: bold;
 }
 
 .controls {
@@ -215,11 +250,12 @@ onBeforeUnmount(() => {
   cursor: pointer;
   box-shadow: 0 4px 10px rgba(0,0,0,0.3);
   transition: transform 0.2s, background-color 0.2s;
-  font-size: 24px; /* Fa l'emoji més gran */
+  font-size: 24px;
 }
 
 .control-btn.actiu {
   background-color: #4CAF50;
+  color: white;
 }
 
 .control-btn:active { 

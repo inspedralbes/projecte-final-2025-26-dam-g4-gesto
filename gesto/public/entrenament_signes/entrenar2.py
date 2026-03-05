@@ -19,7 +19,7 @@ from mediapipe.tasks.python import vision
 
 
 # 1. CONFIGURACIÓ AUTOMÀTICA
-DIRECTORI_DATASET = 'dataset'
+DIRECTORI_DATASET = 'tutorial'
 MODEL_TASK_PATH = 'hand_landmarker.task'
 RUTA_EXPORTACIO = 'model_web' # <-- Ruta directa al frontend
 

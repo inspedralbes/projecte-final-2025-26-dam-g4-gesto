@@ -22,10 +22,20 @@ router.post('/upload-dataset', upload.single('file'), async (req, res) => {
        const zipPath = path.resolve(req.file.path);
 
 
-       // Rutes relatives a l'estructura del projecte des de la carpeta routes
-       const baseProjectDir = path.join(__dirname, '../../gesto/public/entrenament_signes');
-       const extractPath = path.join(baseProjectDir, 'dataset');       
+       // --- RUTA ABSOLUTA CONFIGURADA EN TU DOCKER-COMPOSE ---
+       // Según tu 'volumes', ./gesto está en /usr/src/gesto
+       const baseProjectDir = '/usr/src/gesto/public/entrenament_signes';
+       const extractPath = path.join(baseProjectDir, 'tutorial');       
+       
        console.log(`Rebent fotos per al gest: '${gesto}'...`);
+       
+       // Verificación de seguridad para asegurar que el volumen está bien montado
+       if (!fs.existsSync(baseProjectDir)) {
+           console.error(`ERROR CRÍTICO: No se encuentra la ruta ${baseProjectDir} dentro del contenedor.`);
+           return res.status(500).json({ error: "Error de configuración de carpetas en el servidor." });
+       }
+
+
        // Descomprimir el ZIP
        await extract(zipPath, { dir: extractPath });
 
@@ -42,7 +52,8 @@ router.post('/upload-dataset', upload.single('file'), async (req, res) => {
        // Executar Python en segon pla
        console.log("Llançant procés d'entrenament amb Python...");
       
-       exec('python entrenar2.py', { cwd: baseProjectDir }, (error, stdout, stderr) => {
+       // Usamos python3 que es el que instala tu Dockerfile de python:3.10-slim
+       exec('python3 entrenar2.py', { cwd: baseProjectDir }, (error, stdout, stderr) => {
            if (error) {
                console.error(`Error durant l'entrenament: ${error.message}`);
                return;
