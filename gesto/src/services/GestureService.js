@@ -18,6 +18,7 @@ export class GestureService {
         this.FRAMES_NECESSARIS = 4;
 
         this.classesSignes = ["0", "1", "adeu_inici", "agafar_fi", "agafar_inici", "dit_abaix_nas", "dit_tocant_pit", "gracies", "hola", "mans_tancades", "none", "polze_costat", "tenir"];
+        this.signesDuesMans = ["mans_tancades", "gracies"]; 
     }
 
     async initialize() {
@@ -94,11 +95,24 @@ export class GestureService {
             const signeM1 = this._predirSigne(mans[0]);
             let signeM2 = (mans.length === 2) ? this._predirSigne(mans[1]) : null;
 
+            let signeActual = "none";
 
-            let signeActual = signeM1;
+            const faSigneDoble = this.signesDuesMans.includes(signeM1) || (signeM2 && this.signesDuesMans.includes(signeM2));
 
-            if (mans.length === 2 && (signeM1 === "mans_tancades" || signeM2 === "mans_tancades")) {
-                signeActual = "mans_tancades_doble";
+            if (mans.length === 2) {
+                if (faSigneDoble) {
+                    const signeBase = this.signesDuesMans.includes(signeM1) ? signeM1 : signeM2;
+                    signeActual = signeBase + "_doble";
+                } else {
+                    signeActual = "none"; 
+                }
+            } 
+            else if (mans.length === 1) {
+                if (this.signesDuesMans.includes(signeM1)) {
+                    signeActual = "none"; 
+                } else {
+                    signeActual = signeM1;
+                }
             }
 
             if (signeActual === this.ultimSigneDetectat) {
@@ -150,7 +164,7 @@ export class GestureService {
                 novaParaula = "Hola";
             }
 
-            if (signeActual === "gracies") {
+            if (signeActual === "gracies_doble") {
                 this.estatAnterior = null;
                 novaParaula = "Gràcies";
             }
