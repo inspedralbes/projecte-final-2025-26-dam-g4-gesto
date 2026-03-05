@@ -17,7 +17,7 @@
       <div class="path-section container">
         <div class="path-header">
           <h1>La teva Ruta</h1>
-          <p>Avança pel camí per dominar la llengua de signes.</p>
+          <p>Model actual: Jo, Ell, Amic, Tenir, Agafar</p>
         </div>
 
         <div v-for="(categoria, catIndex) in nivelesPorCategoria" :key="catIndex" class="category-group">
@@ -128,6 +128,10 @@
           </div>
         </div>
 
+        <div class="debug-detection" style="text-align:center; color: #555; margin-top: 10px; font-size: 0.9rem;">
+            Detectat: <strong>{{ fraseDetectada || '...' }}</strong>
+        </div>
+
         <div v-if="mensajeFeedback" class="feedback-banner" :class="tipoFeedback">
           {{ mensajeFeedback }}
         </div>
@@ -148,12 +152,12 @@
 
       <div v-if="mostrarModalSuperat" class="modal-overlay">
         <div class="modal-content">
-          <div class="modal-icon"></div>
+          <div class="modal-icon">🏆</div>
           <h2>Enhorabona!</h2>
           <p>Has completat amb èxit el <strong>{{ niveles[nivelActivo - 1].titol }}</strong>.</p>
           
           <div class="unlocked-badge">
-            Camí actualitzat!
+            🔓 Camí actualitzat!
           </div>
 
           <button class="btn-primary" @click="tancarModalIAnarAlMapa">
@@ -168,9 +172,9 @@
 </template>
 
 <script>
-import videoHola from '../assets/videos/hola.mp4';
 import DrawSkeleton from '../components/DrawSkeleton.vue';
 import { GestureService } from '../services/GestureService'; 
+// import videoHola from '../assets/videos/hola.mp4'; // Descomenta si usas el video real
 
 export default {
   name: 'AprendrePage',
@@ -187,6 +191,7 @@ export default {
       videoElement: null,
       hands: [], 
       currentSign: '', 
+      fraseDetectada: '', // Variable para mostrar la frase completa del servicio
       cameraReady: false,
       stream: null, 
       lastVideoTime: -1, 
@@ -197,100 +202,93 @@ export default {
       feedbackTimeout: null,
       mostrarModalSuperat: false, 
       
+      // =========================================================
+      // NIVELES ADAPTADOS A TU NUEVO MODELO (PRIORIDAD ALTA)
+      // =========================================================
       niveles: [
         {
-          id: 1, categoria: "Nivell Bàsic", descripcio: "Paraules Soltes i Nombres", titol: "Nombres",
+          id: 1, categoria: "Nivell 1", descripcio: "Gestos Estàtics", titol: "Jo",
           llicons: [
-            { titol: "Número 1", instruccio: "Fes el número 1 amb el dit índex.", gestEsperat: "1", arxiu: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Sign_language_1.svg/400px-Sign_language_1.svg.png", esVideo: false },
-            { titol: "Número 0", instruccio: "Junta polze i índex per fer el 0.", gestEsperat: "0", arxiu: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Sign_language_O.svg/400px-Sign_language_O.svg.png", esVideo: false }
+            { 
+              titol: "Jo", 
+              instruccio: "Toca't el pit amb el dit índex (mantén uns segons).", 
+              gestEsperat: "Jo", 
+              arxiu: "https://via.placeholder.com/400?text=Jo", 
+              esVideo: false 
+            }
           ]
         },
         {
-          id: 2, categoria: "Nivell Bàsic", descripcio: "Paraules Soltes i Nombres", titol: "Salutacions",
+          id: 2, categoria: "Nivell 1", descripcio: "Gestos Estàtics", titol: "Tenir",
           llicons: [
-            { titol: "Hola", instruccio: "Saluda movent la mà.", gestEsperat: "Hola", arxiu: videoHola, esVideo: true },
-            { titol: "Adeu", instruccio: "Tanca i obre la mà per dir Adeu.", gestEsperat: "Adeu", arxiu: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Sign_language_B.svg/400px-Sign_language_B.svg.png", esVideo: false }
+            { 
+              titol: "Tenir", 
+              instruccio: "Fes el gest de 'Tenir' (mà al pit amb dits corbats).", 
+              gestEsperat: "Tenir", 
+              arxiu: "https://via.placeholder.com/400?text=Tenir", 
+              esVideo: false 
+            }
           ]
         },
         {
-          id: 3, categoria: "Nivell Bàsic", descripcio: "Paraules Soltes i Nombres", titol: "Cortesia",
+          id: 3, categoria: "Nivell 2", descripcio: "Seqüències de Moviment", titol: "Ell",
           llicons: [
-            { titol: "Gràcies", instruccio: "Porta la mà de la barbeta cap endavant.", gestEsperat: "Gràcies", arxiu: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Sign_language_A.svg/400px-Sign_language_A.svg.png", esVideo: false },
-            { titol: "Si us plau", instruccio: "Ajunta les mans al pit.", gestEsperat: "Si us plau", arxiu: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Sign_language_C.svg/400px-Sign_language_C.svg.png", esVideo: false }
+            { 
+              titol: "Ell", 
+              instruccio: "1. Dit índex sota el nas.\n2. Mou el polze cap al costat.", 
+              gestEsperat: "Ell", 
+              arxiu: "https://via.placeholder.com/400?text=Ell", 
+              esVideo: false 
+            }
           ]
         },
         {
-          id: 4, categoria: "Nivell Bàsic", descripcio: "Paraules Soltes i Nombres", titol: "Família",
+          id: 4, categoria: "Nivell 2", descripcio: "Seqüències de Moviment", titol: "Amic",
           llicons: [
-            { titol: "Mare", instruccio: "Mà alçada amb el polze.", gestEsperat: "Mare", arxiu: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Sign_language_B.svg/400px-Sign_language_B.svg.png", esVideo: false }
+            { 
+              titol: "Amic", 
+              instruccio: "1. Dit índex sota el nas.\n2. Tanca les dues mans juntes.", 
+              gestEsperat: "Amic", 
+              arxiu: "https://via.placeholder.com/400?text=Amic", 
+              esVideo: false 
+            }
           ]
         },
         {
-          id: 5, categoria: "Nivell Bàsic", descripcio: "Paraules Soltes i Nombres", titol: "Negacions",
+          id: 5, categoria: "Nivell 2", descripcio: "Seqüències de Moviment", titol: "Agafar",
           llicons: [
-            { titol: "No", instruccio: "Mou el dit índex d'un costat a l'altre.", gestEsperat: "No", arxiu: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Sign_language_1.svg/400px-Sign_language_1.svg.png", esVideo: false }
+            { 
+              titol: "Agafar", 
+              instruccio: "Fes el gest d'agafar alguna cosa (inici -> fi).", 
+              gestEsperat: "Agafar", 
+              arxiu: "https://via.placeholder.com/400?text=Agafar", 
+              esVideo: false 
+            }
+          ]
+        },
+        {
+          id: 6, categoria: "Nivell 3", descripcio: "Frases Combinades", titol: "Frase Completa",
+          llicons: [
+            { titol: "Jo Tenir", instruccio: "Primer fes 'Jo', després 'Tenir'.", gestEsperat: "Tenir", arxiu: "https://via.placeholder.com/400?text=Jo+Tenir", esVideo: false },
+            { titol: "Ell Agafar", instruccio: "Primer fes 'Ell', després 'Agafar'.", gestEsperat: "Agafar", arxiu: "https://via.placeholder.com/400?text=Ell+Agafar", esVideo: false }
           ]
         },
 
+        // =========================================================
+        // NIVELES ANTIGUOS (DE MOMENTO NO FUNCIONARÁN CON ESTE MODELO)
+        // =========================================================
         {
-          id: 6, categoria: "Nivell Mitjà", descripcio: "Formant Frases Curtes", titol: "Frase 1",
+          id: 7, categoria: "Legacy (Altres)", descripcio: "Nombres", titol: "Nombres",
           llicons: [
-            { titol: "Hola Mare (Part 1)", instruccio: "Primer gest: Fes 'Hola'.", gestEsperat: "Hola", arxiu: videoHola, esVideo: true },
-            { titol: "Hola Mare (Part 2)", instruccio: "Segon gest: Fes 'Mare'.", gestEsperat: "Mare", arxiu: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Sign_language_B.svg/400px-Sign_language_B.svg.png", esVideo: false }
+            { titol: "Número 1", instruccio: "Fes el número 1 amb el dit índex.", gestEsperat: "1", arxiu: "https://via.placeholder.com/400?text=1", esVideo: false },
+            { titol: "Número 0", instruccio: "Junta polze i índex per fer el 0.", gestEsperat: "0", arxiu: "https://via.placeholder.com/400?text=0", esVideo: false }
           ]
         },
         {
-          id: 7, categoria: "Nivell Mitjà", descripcio: "Formant Frases Curtes", titol: "Frase 2",
+          id: 8, categoria: "Legacy (Altres)", descripcio: "Salutacions", titol: "Salutacions",
           llicons: [
-            { titol: "Gràcies Mare (Part 1)", instruccio: "Primer gest: Fes 'Gràcies'.", gestEsperat: "Gràcies", arxiu: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Sign_language_A.svg/400px-Sign_language_A.svg.png", esVideo: false },
-            { titol: "Gràcies Mare (Part 2)", instruccio: "Segon gest: Fes 'Mare'.", gestEsperat: "Mare", arxiu: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Sign_language_B.svg/400px-Sign_language_B.svg.png", esVideo: false }
-          ]
-        },
-        {
-          id: 8, categoria: "Nivell Mitjà", descripcio: "Formant Frases Curtes", titol: "Frase 3",
-          llicons: [
-            { titol: "Adeu Mare (Part 1)", instruccio: "Primer gest: Fes 'Adeu'.", gestEsperat: "Adeu", arxiu: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Sign_language_B.svg/400px-Sign_language_B.svg.png", esVideo: false },
-            { titol: "Adeu Mare (Part 2)", instruccio: "Segon gest: Fes 'Mare'.", gestEsperat: "Mare", arxiu: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Sign_language_B.svg/400px-Sign_language_B.svg.png", esVideo: false }
-          ]
-        },
-        {
-          id: 9, categoria: "Nivell Mitjà", descripcio: "Formant Frases Curtes", titol: "Peticions 1",
-          llicons: [
-            { titol: "Un, si us plau (Part 1)", instruccio: "Primer gest: '1'.", gestEsperat: "1", arxiu: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Sign_language_1.svg/400px-Sign_language_1.svg.png", esVideo: false },
-            { titol: "Un, si us plau (Part 2)", instruccio: "Segon gest: 'Si us plau'.", gestEsperat: "Si us plau", arxiu: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Sign_language_C.svg/400px-Sign_language_C.svg.png", esVideo: false }
-          ]
-        },
-        {
-          id: 10, categoria: "Nivell Mitjà", descripcio: "Formant Frases Curtes", titol: "Respostes 1",
-          llicons: [
-            { titol: "No, gràcies (Part 1)", instruccio: "Primer gest: Fes 'No'.", gestEsperat: "No", arxiu: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Sign_language_1.svg/400px-Sign_language_1.svg.png", esVideo: false },
-            { titol: "No, gràcies (Part 2)", instruccio: "Segon gest: Fes 'Gràcies'.", gestEsperat: "Gràcies", arxiu: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Sign_language_A.svg/400px-Sign_language_A.svg.png", esVideo: false }
-          ]
-        },
-
-        // ======================= NIVELL ALT =======================
-        {
-          id: 11, categoria: "Nivell Alt", descripcio: "Frases Complexes (3 gests)", titol: "Conversa 1",
-          llicons: [
-            { titol: "Hola mare, gràcies (1/3)", instruccio: "Gest 1: 'Hola'.", gestEsperat: "Hola", arxiu: videoHola, esVideo: true },
-            { titol: "Hola mare, gràcies (2/3)", instruccio: "Gest 2: 'Mare'.", gestEsperat: "Mare", arxiu: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Sign_language_B.svg/400px-Sign_language_B.svg.png", esVideo: false },
-            { titol: "Hola mare, gràcies (3/3)", instruccio: "Gest 3: 'Gràcies'.", gestEsperat: "Gràcies", arxiu: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Sign_language_A.svg/400px-Sign_language_A.svg.png", esVideo: false }
-          ]
-        },
-        {
-          id: 12, categoria: "Nivell Alt", descripcio: "Frases Complexes (3 gests)", titol: "Conversa 2",
-          llicons: [
-            { titol: "No mare, adeu (1/3)", instruccio: "Gest 1: 'No'.", gestEsperat: "No", arxiu: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Sign_language_1.svg/400px-Sign_language_1.svg.png", esVideo: false },
-            { titol: "No mare, adeu (2/3)", instruccio: "Gest 2: 'Mare'.", gestEsperat: "Mare", arxiu: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Sign_language_B.svg/400px-Sign_language_B.svg.png", esVideo: false },
-            { titol: "No mare, adeu (3/3)", instruccio: "Gest 3: 'Adeu'.", gestEsperat: "Adeu", arxiu: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Sign_language_B.svg/400px-Sign_language_B.svg.png", esVideo: false }
-          ]
-        },
-        {
-          id: 13, categoria: "Nivell Alt", descripcio: "El Repte Final", titol: "Repte Final",
-          llicons: [
-            { titol: "Un i zero, si us plau (1/3)", instruccio: "Gest 1: Fes l''1'.", gestEsperat: "1", arxiu: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Sign_language_1.svg/400px-Sign_language_1.svg.png", esVideo: false },
-            { titol: "Un i zero, si us plau (2/3)", instruccio: "Gest 2: Fes el '0'.", gestEsperat: "0", arxiu: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Sign_language_O.svg/400px-Sign_language_O.svg.png", esVideo: false },
-            { titol: "Un i zero, si us plau (3/3)", instruccio: "Gest 3: 'Si us plau'.", gestEsperat: "Si us plau", arxiu: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Sign_language_C.svg/400px-Sign_language_C.svg.png", esVideo: false }
+            { titol: "Hola", instruccio: "Saluda movent la mà.", gestEsperat: "Hola", arxiu: "https://via.placeholder.com/400?text=Hola", esVideo: false }, // videoHola
+            { titol: "Adeu", instruccio: "Tanca i obre la mà per dir Adeu.", gestEsperat: "Adeu", arxiu: "https://via.placeholder.com/400?text=Adeu", esVideo: false }
           ]
         }
       ]
@@ -378,7 +376,7 @@ export default {
       } catch (error) {
         console.error("Error al acceder a la cámara:", error);
         this.tipoFeedback = 'error';
-        this.mensajeFeedback = "No s'ha pogut accedir a la càmera. Assegura't de donar permisos.";
+        this.mensajeFeedback = "❌ No s'ha pogut accedir a la càmera. Assegura't de donar permisos.";
       }
     },
     predictWebcam() {
@@ -393,12 +391,23 @@ export default {
         
         if (result) {
           this.hands = result.hands;
-          this.currentSign = result.signo;
+          
+          // El servicio devuelve una frase completa (ej: "Jo Tenir Amic") o "Esperant signes..."
+          const outputString = result.signo;
+          this.fraseDetectada = outputString; // Para debug en pantalla
 
-          if (this.tipoFeedback !== 'success' && this.currentSign === this.llicoActualData.gestEsperat) {
-              this.gestoCorrecto();
+          if (outputString !== "Esperant signes..." && outputString.length > 0) {
+              // Convertimos la frase en array para sacar la última palabra detectada
+              const palabras = outputString.split(" ");
+              const ultimaPalabra = palabras[palabras.length - 1];
+              
+              this.currentSign = ultimaPalabra;
+
+              // Comprobamos si la última palabra coincide con lo que pide la lección
+              if (this.tipoFeedback !== 'success' && this.currentSign === this.llicoActualData.gestEsperat) {
+                  this.gestoCorrecto();
+              }
           }
-
         } else {
           this.hands = [];
         }
@@ -416,6 +425,7 @@ export default {
         this.mensajeFeedback = null;
         this.tipoFeedback = null; 
         this.mostrarModalSuperat = false;
+        this.fraseDetectada = ''; // Limpiar debug
         
         this.$nextTick(() => {
           this.setupCamera();
@@ -443,7 +453,7 @@ export default {
         this.tipoFeedback = 'success';
 
         if (this.pasoActual === this.totalPasosLlico) {
-            this.mensajeFeedback = `Genial! Processant recompensa...`;
+            this.mensajeFeedback = `🎉 Genial! Processant recompensa...`;
             
             if (this.nivelActivo === this.nivelDesbloqueado && this.nivelDesbloqueado <= this.niveles.length) {
                 this.nivelDesbloqueado++;
@@ -456,7 +466,7 @@ export default {
             }, 1000);
 
         } else {
-            this.mensajeFeedback = `Correcte! Has fet el gest de "${this.llicoActualData.gestEsperat}".`;
+            this.mensajeFeedback = `✅ Correcte! Has fet el gest de "${this.llicoActualData.gestEsperat}".`;
             this.feedbackTimeout = setTimeout(() => {
                 this.avançarLlicoAutomàtic();
             }, 2000);
@@ -493,6 +503,7 @@ export default {
   color: #E0E0E0;
 }
 
+/* ================= HEADER ================= */
 .learning-header {
   display: flex;
   align-items: center;
@@ -525,6 +536,7 @@ export default {
 }
 .btn-test:hover { background-color: #00BFFF; color: #000; border-color: #00BFFF; }
 
+/* ================= RUTA ESTIL "CAMINO" ================= */
 .path-section { padding-top: 40px; padding-bottom: 100px; }
 .path-header { text-align: center; margin-bottom: 60px; }
 .path-header h1 { font-size: 2.5rem; font-weight: 800; color: #fff; margin-bottom: 10px; }
@@ -549,6 +561,7 @@ export default {
 .current-label { position: absolute; top: -35px; background-color: rgba(0, 191, 255, 0.15); color: #00BFFF; border: 1px solid #00BFFF; font-weight: 600; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; letter-spacing: 1px; white-space: nowrap; animation: pulse 2s infinite; }
 @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0, 191, 255, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(0, 191, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 191, 255, 0); } }
 
+/* ================= BOTONS 3D ================= */
 .timeline-node { 
   width: 70px; 
   height: 70px; 
@@ -608,6 +621,7 @@ export default {
 .node-info h3 { margin: 0; font-size: 1.1rem; color: #fff; text-transform: uppercase; letter-spacing: 1px; }
 .lesson-count { font-size: 0.85rem; color: #888; }
 
+/* ================= VISTA DE LA LECCIÓN (INTERIOR) ================= */
 .learning-content { flex-grow: 1; display: flex; flex-direction: column; padding-top: 20px; padding-bottom: 40px; }
 .lesson-title { font-size: 2.5rem; font-weight: 800; color: #fff; margin-bottom: 10px; text-align: center; }
 .lesson-instruction { font-size: 1.1rem; color: #A0A0A0; text-align: center; margin-bottom: 40px; }
@@ -634,11 +648,13 @@ export default {
 .auto-detect-indicator { padding: 16px 40px; font-size: 1.1rem; font-weight: 700; border-radius: 4px; text-transform: uppercase; letter-spacing: 1px; background-color: #2a0000; color: #ff4040; border: 1px solid #ff4040; transition: all 0.3s ease; width: 100%; text-align: center; }
 .auto-detect-indicator.success { background-color: #002a11; color: #00ff80; border: 1px solid #00ff80; }
 
+/* ================= MENSAJES DE FEEDBACK ================= */
 .feedback-banner { margin-top: 30px; padding: 16px 20px; border-radius: 8px; text-align: center; font-weight: 600; font-size: 1.1rem; animation: slideUpFade 0.3s ease-out forwards; }
 .feedback-banner.success { background-color: rgba(0, 255, 128, 0.1); color: #00ff80; border: 1px solid rgba(0, 255, 128, 0.3); box-shadow: 0 0 15px rgba(0, 255, 128, 0.1); }
 .feedback-banner.error { background-color: rgba(255, 64, 64, 0.1); color: #ff4040; border: 1px solid rgba(255, 64, 64, 0.3); box-shadow: 0 0 15px rgba(255, 64, 64, 0.1); }
 @keyframes slideUpFade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
+/* ================= MODAL DE VICTORIA (TRANSICIÓN) ================= */
 .modal-overlay {
   position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 999; animation: fadeIn 0.4s ease-out;
 }
