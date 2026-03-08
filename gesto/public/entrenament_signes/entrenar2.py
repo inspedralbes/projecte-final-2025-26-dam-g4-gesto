@@ -1,0 +1,139 @@
+import os
+# AIXÒ ÉS LA SOLUCIÓ A TOTS ELS PROBLEMES DE WEB: Forçar Keras Clàssic (v2)
+os.environ["TF_USE_LEGACY_KERAS"] = "1"
+
+
+import urllib.request
+import pandas as pd
+import numpy as np
+import tensorflow as tf
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+import tensorflowjs as tfjs
+import json # <-- Añadido para exportar las clases
+
+
+import mediapipe as mp
+from mediapipe.tasks import python
+from mediapipe.tasks.python import vision
+
+
+# 1. CONFIGURACIÓ AUTOMÀTICA
+DIRECTORI_DATASET = 'tutorial'
+MODEL_TASK_PATH = 'hand_landmarker.task'
+RUTA_EXPORTACIO = 'model_web' # <-- Ruta directa al frontend
+
+
+# Detecta las clases automáticamente leyendo los nombres de las carpetas dentro de 'dataset'
+CLASSES = [nom for nom in os.listdir(DIRECTORI_DATASET) if os.path.isdir(os.path.join(DIRECTORI_DATASET, nom))]
+print(f"Classes detectades automàticament: {CLASSES}")
+
+
+if len(CLASSES) < 2:
+   print("ERROR: Necessites almenys 2 carpetes de gestos diferents dins de 'dataset' per entrenar.")
+   exit()
+
+
+# 2. DESCARREGAR EL MODEL BASE DE MEDIAPIPE (si no existeix)
+if not os.path.exists(MODEL_TASK_PATH):
+   print(f"Descarregant el model base de MediaPipe ({MODEL_TASK_PATH})...")
+   url = "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task"
+   urllib.request.urlretrieve(url, MODEL_TASK_PATH)
+   print("Descàrrega completada!")
+
+
+# 3. CONFIGURAR L'EXTRACTOR DE MANS
+base_options = python.BaseOptions(model_asset_path=MODEL_TASK_PATH)
+options = vision.HandLandmarkerOptions(base_options=base_options, num_hands=1)
+detector = vision.HandLandmarker.create_from_options(options)
+
+
+dades = []
+etiquetes = []
+
+
+print("\n--- FASE 1: Extracció de coordenades amb MediaPipe Tasks Vision ---")
+for classe in CLASSES:
+   ruta_classe = os.path.join(DIRECTORI_DATASET, classe)
+   imatges = os.listdir(ruta_classe)
+   print(f"Processant {len(imatges)} fotos de la classe '{classe}'...")
+  
+   for nom_imatge in imatges:
+       ruta_imatge = os.path.join(ruta_classe, nom_imatge)
+       try:
+           mp_image = mp.Image.create_from_file(ruta_imatge)
+           detection_result = detector.detect(mp_image)
+          
+           if detection_result.hand_landmarks:
+               for hand_landmarks in detection_result.hand_landmarks:
+                   fila_coordenades = []
+                   for landmark in hand_landmarks:
+                       fila_coordenades.extend([landmark.x, landmark.y, landmark.z])
+                  
+                   dades.append(fila_coordenades)
+                   etiquetes.append(classe)
+       except Exception:
+           pass
+
+
+X = np.array(dades)
+y = np.array(etiquetes)
+
+
+print(f"\nExtracció completada! Tenim {len(X)} exemples vàlids.")
+
+
+if len(X) == 0:
+   print("ERROR: No s'ha detectat cap mà a les fotos.")
+   exit()
+
+
+print("\n--- FASE 2: Entrenament del Model ---")
+encoder = LabelEncoder()
+y_codificat = encoder.fit_transform(y)
+
+
+# 1. Comptem quantes classes REALS tenen coordenades vàlides
+numero_classes_reals = len(encoder.classes_)
+print(f"Classes finalment acceptades per a l'entrenament: {list(encoder.classes_)}")
+
+
+if numero_classes_reals < 2:
+   print("ERROR: Necessites almenys 2 gestos vàlids amb mans detectades per poder entrenar.")
+   exit()
+
+
+y_categoric = tf.keras.utils.to_categorical(y_codificat, num_classes=numero_classes_reals)
+
+
+X_train, X_test, y_train, y_test = train_test_split(X, y_categoric, test_size=0.2, random_state=42)
+
+
+# --- XARXA NEURONAL MILLORADA I MÉS PROFUNDA ---
+model = tf.keras.Sequential([
+   tf.keras.layers.Dense(256, activation='relu', input_shape=(63,)),
+   tf.keras.layers.Dropout(0.3), # El Dropout evita que la IA memorice las fotos exactas
+   tf.keras.layers.Dense(128, activation='relu'),
+   tf.keras.layers.Dropout(0.2),
+   tf.keras.layers.Dense(64, activation='relu'),
+   tf.keras.layers.Dense(numero_classes_reals, activation='softmax')
+])
+
+# Ajustamos cómo aprende y le damos más tiempo de estudio (100 epochs en lugar de 50)
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+model.fit(X_train, y_train, epochs=100, batch_size=32, validation_data=(X_test, y_test))
+
+
+print("\n--- FASE 3: Exportació Automàtica per a la Web ---")
+# 1. Guardar el model sobrescribiendo el antiguo en la carpeta public/model_web
+tfjs.converters.save_keras_model(model, RUTA_EXPORTACIO)
+
+
+# 2. Generar el archivo classes.json
+ruta_json = os.path.join(RUTA_EXPORTACIO, "classes.json")
+with open(ruta_json, "w") as f:
+   json.dump(list(encoder.classes_), f)
+
+
+print(f"¡Model i etiquetes exportats correctament a '{RUTA_EXPORTACIO}'!")
+print("Ja pots recarregar la teva pàgina web, no has de tocar cap codi!")
