@@ -9,14 +9,12 @@ import VueRouter from 'unplugin-vue-router/vite'
 import { defineConfig } from 'vite'
 import { fileURLToPath, URL } from 'node:url'
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     VueRouter(),
     Vue({
       template: { transformAssetUrls },
     }),
-    // https://github.com/vuetifyjs/vuetify-loader/tree/master/packages/vite-plugin#readme
     Vuetify({
       autoImport: true,
       styles: {
@@ -43,6 +41,12 @@ export default defineConfig({
       'unplugin-vue-router/runtime',
       'unplugin-vue-router/data-loaders',
       'unplugin-vue-router/data-loaders/basic',
+      // FIX: Traiem mediapipe de exclude perquè Vite el pugui bundlejar correctament
+      // '@mediapipe/tasks-vision',  <-- eliminat
+    ],
+    // FIX: Forcem que TF i MediaPipe s'optimitzin junts per evitar col·lisions de backend
+    include: [
+      '@tensorflow/tfjs',
       '@mediapipe/tasks-vision',
     ],
   },
