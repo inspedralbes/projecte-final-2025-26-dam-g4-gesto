@@ -21,8 +21,6 @@ export class GestureService {
 
    async initialize() {
        try {
-           // FIX: MediaPipe es carrega dinàmicament des del CDN (forma original)
-           // però ara TF ve del npm i NO des del CDN, evitant la col·lisió
            const { HandLandmarker, FilesetResolver } = await import(
                'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.32/vision_bundle.mjs'
            );
@@ -42,13 +40,11 @@ export class GestureService {
 
            console.log("✅ HandLandmarker inicialitzat correctament");
 
-           // TF ve del npm — ja no interfereix amb el TF intern de MediaPipe CDN
-           // perquè MediaPipe CDN és autocontigut dins del seu bundle
            await tf.ready();
            console.log("✅ TensorFlow.js llest. Backend:", tf.getBackend());
 
            const noCache = '?t=' + Date.now();
-           const basePath = '/entrenament_signes/model_web/';
+           const basePath = '/entrenament_signes/model_web_v2/';
 
            const classesResponse = await fetch(basePath + 'classes.json' + noCache);
            if (classesResponse.ok) {
@@ -67,6 +63,22 @@ export class GestureService {
            console.error("Error inicialitzant GestureService:", error);
            throw error;
        }
+   }
+
+   destroy() {
+       this.enExecucio = false;
+       if (this.model) {
+           this.model.dispose();
+           this.model = null;
+       }
+       if (this.handLandmarker) {
+           this.handLandmarker.close();
+           this.handLandmarker = null;
+       }
+       this.gestCongelat = null;
+       this.gestPendent = null;
+       this.compteConfirmacio = 0;
+       console.log("✅ GestureService V2 destruït correctament.");
    }
 
    _predirSigne(ma) {
@@ -89,9 +101,6 @@ export class GestureService {
            const index = prediccio.argMax(1).dataSync()[0];
            const confianca = prediccio.max().dataSync()[0];
            const gestAdivinat = this.classesSignes[index];
-
-           // 👁️ Descomenta per veure percentatges en temps real:
-           // console.log(`🤔 IA: "${gestAdivinat}" al ${(confianca * 100).toFixed(1)}%`);
 
            return confianca > 0.80 ? gestAdivinat : null;
 
