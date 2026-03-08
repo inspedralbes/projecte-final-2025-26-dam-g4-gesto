@@ -17,21 +17,10 @@
     <DatasetCreator :videoElement="videoRef" :usantIAv2="usantIAv2" />
 
     <div class="controls">
-      <button @click="goHome" class="control-btn" aria-label="Tornar a l'inici">
-        🏠
-      </button>
-
-      <button @click="mostrarEsquelet = !mostrarEsquelet" class="control-btn" :class="{ 'actiu': mostrarEsquelet }" aria-label="Alternar esquelet">
-        👁️
-      </button>
-
-      <button @click="switchCamera" class="control-btn" aria-label="Canviar càmera">
-        🔄
-      </button>
-
-      <button @click="canviarIA" class="control-btn" :class="{ 'actiu': usantIAv2 }" aria-label="Canviar IA">
-        🧠
-      </button>
+      <button @click="goHome" class="control-btn" aria-label="Tornar a l'inici">🏠</button>
+      <button @click="mostrarEsquelet = !mostrarEsquelet" class="control-btn" :class="{ 'actiu': mostrarEsquelet }" aria-label="Alternar esquelet">👁️</button>
+      <button @click="switchCamera" class="control-btn" aria-label="Canviar càmera">🔄</button>
+      <button @click="canviarIA" class="control-btn" :class="{ 'actiu': usantIAv2 }" aria-label="Canviar IA" :disabled="carregant">🧠</button>
     </div>
 
     <p v-if="error" class="error-msg">{{ error }}</p>
@@ -42,7 +31,6 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 
-// IMPORTAMOS LOS DOS ARCHIVOS, PONIÉNDOLES NOMBRES DISTINTOS
 import { GestureService as GestureServiceOriginal } from '../services/GestureService'; 
 import { GestureService as GestureServiceV2 } from '../services/gestureservices2'; 
 
@@ -56,9 +44,9 @@ const error = ref(null);
 const facingMode = ref('user'); 
 let currentStream = null;
 
-// VARIABLE PARA SABER CUÁL ESTÁ ACTIVA (Por defecto, tu V2)
 const usantIAv2 = ref(true);
-let gestureService = null; // Lo dejamos vacío y lo llenamos luego
+const carregant = ref(false);
+let gestureService = null;
 
 const manosDetectadas = ref([]);
 const signoDetectado = ref('Iniciant IA...');
@@ -74,24 +62,34 @@ const speak = (text) => {
     utterance.lang = 'ca-ES';
     utterance.rate = 1.2;
     window.speechSynthesis.speak(utterance);
-  } else {
-    console.warn("La síntesi de veu no és suportada en aquest navegador.");
   }
 };
 
-// NUEVA FUNCIÓN PARA CARGAR LA IA ELEGIDA
 const carregarIA = async () => {
+  carregant.value = true;
   signoDetectado.value = 'Carregant model...';
-  // Si usantIAv2 es true, usa tu archivo. Si es false, usa el de tus compañeros.
-  gestureService = usantIAv2.value ? new GestureServiceV2() : new GestureServiceOriginal();
-  await gestureService.initialize();
-  signoDetectado.value = 'IA Llista!';
+
+  // Destruïm el servei anterior per alliberar memòria
+  if (gestureService) {
+    gestureService.destroy();
+    gestureService = null;
+  }
+
+  try {
+    gestureService = usantIAv2.value ? new GestureServiceV2() : new GestureServiceOriginal();
+    await gestureService.initialize();
+    signoDetectado.value = 'IA Llista!';
+  } catch (e) {
+    console.error("Error carregant IA:", e);
+    signoDetectado.value = 'Error carregant IA';
+  } finally {
+    carregant.value = false;
+  }
 };
 
-// FUNCIÓN DEL BOTÓN PARA CAMBIAR
 const canviarIA = async () => {
-  usantIAv2.value = !usantIAv2.value; // Alternamos de true a false
-  await carregarIA(); // Volvemos a cargar el modelo correcto
+  usantIAv2.value = !usantIAv2.value;
+  await carregarIA();
 };
 
 const startCamera = async () => {
@@ -114,6 +112,8 @@ const startCamera = async () => {
     if (videoRef.value) {
       videoRef.value.srcObject = stream;
       videoRef.value.onloadeddata = () => {
+        // Cancelamos el loop anterior si existía antes de iniciar uno nuevo
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
         predictLoop();
       };
     }
@@ -134,8 +134,7 @@ const goHome = () => {
 };
 
 const predictLoop = () => {
-  // Asegurarnos de que gestureService ya se ha cargado
-  if (gestureService && videoRef.value && videoRef.value.readyState === 4) {
+  if (gestureService && !carregant.value && videoRef.value && videoRef.value.readyState === 4) {
     const resultado = gestureService.detect(videoRef.value, performance.now());
 
     if (resultado && resultado.signo) {
@@ -144,7 +143,7 @@ const predictLoop = () => {
 
       if (newSigno !== signoDetectado.value) {
         signoDetectado.value = newSigno;
-        if (newSigno !== lastSpokenSigno.value && newSigno !== "Mà detectada") {
+        if (newSigno !== lastSpokenSigno.value && newSigno !== "Mà detectada" && newSigno !== "Esperant signes...") {
           speak(newSigno);
           lastSpokenSigno.value = newSigno;
         }
@@ -159,20 +158,18 @@ const predictLoop = () => {
 };
 
 onMounted(async () => {
-  await carregarIA(); // Primero cargamos el cerebro
-  startCamera();      // Luego encendemos los ojos
+  await carregarIA();
+  startCamera();
 });
 
 onBeforeUnmount(() => {
-  if (currentStream) {
-    currentStream.getTracks().forEach(track => track.stop());
-  }
   if (animationFrameId) cancelAnimationFrame(animationFrameId);
+  if (currentStream) currentStream.getTracks().forEach(track => track.stop());
+  if (gestureService) gestureService.destroy();
 });
 </script>
 
 <style scoped>
-/* TODO TU CSS SIGUE IGUAL, SOLO AÑADO ESTO PARA EL TEXTO DE LA IA */
 .camera-container {
   position: relative;
   width: 100vw;
@@ -251,6 +248,11 @@ onBeforeUnmount(() => {
   box-shadow: 0 4px 10px rgba(0,0,0,0.3);
   transition: transform 0.2s, background-color 0.2s;
   font-size: 24px;
+}
+
+.control-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .control-btn.actiu {

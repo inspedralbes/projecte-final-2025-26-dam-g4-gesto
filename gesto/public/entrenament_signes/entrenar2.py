@@ -21,7 +21,7 @@ from mediapipe.tasks.python import vision
 # 1. CONFIGURACIÓ AUTOMÀTICA
 DIRECTORI_DATASET = 'tutorial'
 MODEL_TASK_PATH = 'hand_landmarker.task'
-RUTA_EXPORTACIO = 'model_web' # <-- Ruta directa al frontend
+RUTA_EXPORTACIO = 'model_web_v2' # <-- Ruta directa al frontend
 
 
 # Detecta las clases automáticamente leyendo los nombres de las carpetas dentro de 'dataset'

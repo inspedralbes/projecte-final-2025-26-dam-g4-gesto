@@ -22,40 +22,49 @@ export class GestureService {
     }
 
     async initialize() {
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/vision_bundle.js';
-        script.async = true;
+        try {
+            // Usem la mateixa versió que el V2 per evitar conflictes
+            const { HandLandmarker, FilesetResolver } = await import(
+                'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.32/vision_bundle.mjs'
+            );
+            const vision = await FilesetResolver.forVisionTasks(
+                'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.32/wasm'
+            );
 
-        return new Promise((resolve, reject) => {
-            script.onload = async () => {
-                try {
-                    const { HandLandmarker, FilesetResolver } = await import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/vision_bundle.js");
-                    const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm");
+            this.handLandmarker = await HandLandmarker.createFromOptions(vision, {
+                baseOptions: {
+                    modelAssetPath: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
+                    delegate: "GPU"
+                },
+                runningMode: "VIDEO",
+                numHands: 2
+            });
 
-                    this.handLandmarker = await HandLandmarker.createFromOptions(vision, {
-                        baseOptions: {
-                            modelAssetPath: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
-                            delegate: "GPU"
-                        },
-                        runningMode: "VIDEO",
-                        numHands: 2
-                    });
+            try {
+                this.model = await tf.loadLayersModel('/entrenament_signes/model_web/model.json?t=' + Date.now());
+                console.log("Model IA carregat correctament.");
+            } catch (errorModel) {
+                console.error("Error en carregar model.json:", errorModel);
+            }
 
-                    try {
-                        this.model = await tf.loadLayersModel('/entrenament_signes/model_web/model.json?t=' + Date.now());
-                    } catch (errorModel) {
-                        console.error("Error en carregar model.json:", errorModel);
-                    }
+            this.enExecucio = true;
 
-                    this.enExecucio = true;
-                    resolve();
-                } catch (error) {
-                    reject(error);
-                }
-            };
-            script.onerror = () => reject(new Error('Error en carregar MediaPipe'));
-            document.head.appendChild(script);
-        });
+        } catch (error) {
+            console.error("Error en la inicialització:", error);
+            throw error;
+        }
+    }
+
+    destroy() {
+        this.enExecucio = false;
+        if (this.model) {
+            this.model.dispose();
+            this.model = null;
+        }
+        if (this.handLandmarker) {
+            this.handLandmarker.close();
+            this.handLandmarker = null;
+        }
     }
 
     _predirSigne(ma) {
@@ -210,7 +219,6 @@ export class GestureService {
                 this.tempsUltimaParaula = timestamp;
             }
         } else {
-            // Si baixes les mans completament fora de la càmera
             this.potAfegirParaula = true;
         }
 
@@ -222,11 +230,8 @@ export class GestureService {
 
         try {
             const result = this.handLandmarker.detectForVideo(videoElement, timestamp);
-
             const signe = this._analitzarMoviment(result.landmarks || [], timestamp);
-
             return { hands: result.landmarks || [], signo: signe };
-
         } catch (error) {
         }
 
