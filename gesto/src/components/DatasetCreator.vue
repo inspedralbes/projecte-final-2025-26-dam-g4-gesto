@@ -152,7 +152,7 @@ const aturarCaptura = async () => {
       formData.append('file', contingutZip, `dataset_${nomGest.value}.zip`);
       formData.append('gesto', nomGest.value);
 
-      const resposta = await fetch('http://localhost:5000/api/upload-dataset', {
+      const resposta = await fetch('https://gesto.dam.inspedralbes.cat/api/upload-dataset', {
         method: 'POST',
         body: formData
       });
