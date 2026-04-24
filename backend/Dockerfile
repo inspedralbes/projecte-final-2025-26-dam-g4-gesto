@@ -1,8 +1,7 @@
-FROM python:3.10-slim
-
+# Usamos la versión estable (bookworm) para evitar errores 403 y cortes de apt-get
+FROM python:3.10-slim-bookworm
 
 ENV PYTHONUNBUFFERED=1
-
 
 # Instal·lem les dependències del sistema
 RUN apt-get update && apt-get install -y \
@@ -11,11 +10,9 @@ RUN apt-get update && apt-get install -y \
    libglib2.0-0 \
    && rm -rf /var/lib/apt/lists/*
 
-
 # Instal·lem Node.js versió 22
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
    && apt-get install -y nodejs
-
 
 # Instal·lem TOTA la intel·ligència artificial (es baixarà ràpid perquè no compila)
 RUN pip install --no-cache-dir \
@@ -25,16 +22,12 @@ RUN pip install --no-cache-dir \
    scikit-learn \
    pandas
 
-
 WORKDIR /usr/src/app
-
 
 COPY package*.json ./
 RUN npm install
 
-
 COPY . .
-
 
 EXPOSE 5000
 CMD ["node", "server.js"]
