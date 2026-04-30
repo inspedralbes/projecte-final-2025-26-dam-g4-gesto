@@ -17,8 +17,7 @@ export class GestureService {
         this.comptadorContinuita = 0;
         this.FRAMES_NECESSARIS = 4;
 
-        this.classesSignes = ["0", "1", "adeu_inici", "agafar_fi", "agafar_inici", "dit_abaix_nas", "dit_tocant_pit", "gracies", "hola", "mans_tancades", "none", "polze_costat", "tenir"];
-        this.signesDuesMans = ["mans_tancades", "gracies"]; 
+        this.classesSignes = [];
     }
 
     async initialize() {
@@ -41,10 +40,19 @@ export class GestureService {
             });
 
             try {
-                this.model = await tf.loadLayersModel('/entrenament_signes/model_web/model.json?t=' + Date.now());
-                console.log("Model IA carregat correctament.");
+                const noCache = '?t=' + Date.now();
+                const basePath = '/entrenament_signes/model_web/';
+                
+                // Carregar etiquetes dinàmicament
+                const classesResponse = await fetch(basePath + 'classes.json' + noCache);
+                if (classesResponse.ok) {
+                    this.classesSignes = await classesResponse.json();
+                }
+
+                this.model = await tf.loadLayersModel(basePath + 'model.json' + noCache);
+                console.log("Model IA carregat correctament amb " + this.classesSignes.length + " classes.");
             } catch (errorModel) {
-                console.error("Error en carregar model.json:", errorModel);
+                console.error("Error en carregar model.json o classes.json:", errorModel);
             }
 
             this.enExecucio = true;
@@ -67,28 +75,44 @@ export class GestureService {
         }
     }
 
-    _predirSigne(ma) {
+    _predirSigne(mans) {
         if (!this.model) return null;
 
         let coordenadesPlanes = [];
-        for (let i = 0; i < ma.length; i++) {
-            coordenadesPlanes.push(ma[i].x);
-            coordenadesPlanes.push(ma[i].y);
-            coordenadesPlanes.push(ma[i].z);
+        
+        if (mans.length > 0) {
+            for (let i = 0; i < mans[0].length; i++) {
+                coordenadesPlanes.push(mans[0][i].x, mans[0][i].y, mans[0][i].z);
+            }
+        } else {
+            for (let i = 0; i < 63; i++) coordenadesPlanes.push(0);
         }
 
-        return tf.tidy(() => {
-            const inputTensor = tf.tensor2d([coordenadesPlanes]);
-            const prediccio = this.model.predict(inputTensor);
-
-            const index = prediccio.argMax(1).dataSync()[0];
-            const confianca = prediccio.max().dataSync()[0];
-
-            if (confianca > 0.75) {
-                return this.classesSignes[index];
+        if (mans.length > 1) {
+            for (let i = 0; i < mans[1].length; i++) {
+                coordenadesPlanes.push(mans[1][i].x, mans[1][i].y, mans[1][i].z);
             }
+        } else {
+            for (let i = 0; i < 63; i++) coordenadesPlanes.push(0);
+        }
+
+        try {
+            return tf.tidy(() => {
+                const inputTensor = tf.tensor2d([coordenadesPlanes]);
+                const prediccio = this.model.predict(inputTensor);
+
+                const index = prediccio.argMax(1).dataSync()[0];
+                const confianca = prediccio.max().dataSync()[0];
+
+                if (confianca > 0.75) {
+                    return this.classesSignes[index];
+                }
+                return null;
+            });
+        } catch (error) {
+            // L'error habitual serà que el model actual espera 63 punts i rep 126
             return null;
-        });
+        }
     }
 
     _analitzarMoviment(mans, timestamp) {
@@ -101,28 +125,7 @@ export class GestureService {
         }
 
         if (mans.length > 0) {
-            const signeM1 = this._predirSigne(mans[0]);
-            let signeM2 = (mans.length === 2) ? this._predirSigne(mans[1]) : null;
-
-            let signeActual = "none";
-
-            const faSigneDoble = this.signesDuesMans.includes(signeM1) || (signeM2 && this.signesDuesMans.includes(signeM2));
-
-            if (mans.length === 2) {
-                if (faSigneDoble) {
-                    const signeBase = this.signesDuesMans.includes(signeM1) ? signeM1 : signeM2;
-                    signeActual = signeBase + "_doble";
-                } else {
-                    signeActual = "none"; 
-                }
-            } 
-            else if (mans.length === 1) {
-                if (this.signesDuesMans.includes(signeM1)) {
-                    signeActual = "none"; 
-                } else {
-                    signeActual = signeM1;
-                }
-            }
+            let signeActual = this._predirSigne(mans);
 
             if (signeActual === this.ultimSigneDetectat) {
                 this.comptadorContinuita++;
@@ -148,7 +151,7 @@ export class GestureService {
                 novaParaula = "Jo";
             }
 
-            if (signeActual === "mans_tancades_doble") {
+            if (signeActual === "mans_tancades") {
                 this.estatAnterior = null;
                 novaParaula = "Amic";
             }
@@ -173,7 +176,7 @@ export class GestureService {
                 novaParaula = "Hola";
             }
 
-            if (signeActual === "gracies_doble") {
+            if (signeActual === "gracies") {
                 this.estatAnterior = null;
                 novaParaula = "Gràcies";
             }
@@ -212,6 +215,14 @@ export class GestureService {
                 }
             }
 
+            // FALLBACK PER GESTOS NOUS (ex. SIXSEVEN)
+            if (!novaParaula && !["none", "0", "1"].includes(signeActual)) {
+                if (!signeActual.includes("_inici") && !signeActual.includes("_fi") && !signeActual.includes("_costat")) {
+                    novaParaula = signeActual;
+                    this.estatAnterior = null;
+                }
+            }
+
             // AFEGIR LA PARAULA A LA FRASE
             if (novaParaula && this.potAfegirParaula) {
                 this.fraseActual.push(novaParaula);
@@ -230,9 +241,15 @@ export class GestureService {
 
         try {
             const result = this.handLandmarker.detectForVideo(videoElement, timestamp);
-            const signe = this._analitzarMoviment(result.landmarks || [], timestamp);
+            let signe = null;
+            try {
+                signe = this._analitzarMoviment(result.landmarks || [], timestamp);
+            } catch (err) {
+                console.error("Error predir signe:", err);
+            }
             return { hands: result.landmarks || [], signo: signe };
         } catch (error) {
+            console.error("Error detectForVideo:", error);
         }
 
         return null;

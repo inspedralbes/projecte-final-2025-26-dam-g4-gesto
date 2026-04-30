@@ -14,7 +14,7 @@
       <span class="badge-ia">{{ usantIAv2 ? 'IA Automàtica (V2)' : 'IA Original (V1)' }}</span>
     </div>
 
-    <DatasetCreator :videoElement="videoRef" :usantIAv2="usantIAv2" />
+    <DatasetCreator :videoElement="videoRef" :usantIAv2="usantIAv2" :handsData="manosDetectadas" />
 
     <div class="controls">
       <button @click="goHome" class="control-btn" aria-label="Tornar a l'inici">🏠</button>

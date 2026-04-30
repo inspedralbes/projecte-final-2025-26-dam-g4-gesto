@@ -1,33 +1,31 @@
 <template>
   <div class="dataset-creator">
-    <div v-if="!estaGravant" class="controls">
+    <div v-if="!estaGravant && !estaPreparant" class="controls">
       <h3>Crear Dataset de Gestos</h3>
-      <input v-model="nomGest" type="text" placeholder="Nom del gest (ex: DOS, TRES)" />
-      <button @click="iniciarCaptura" :disabled="!nomGest">
-        Gravar 200 fotos (Dreta i Esquerra)
+      <textarea v-model="textGestos" placeholder="Noms dels gestos separats per comes (ex: A, B, C)" rows="3"></textarea>
+      <button @click="iniciarCua" :disabled="!textGestos.trim()">
+        Gravar ({{ textGestos.split(',').filter(g => g.trim()).length }} gestos)
       </button>
     </div>
 
-    <div v-else-if="estaGravant && !estaComprimint && !estaEnPausa" class="recording">
-      <h3>Gravant "{{ nomGest }}"...</h3>
-      <p>Mou la mà lentament (canvia la distància i l'angle)</p>
-      <p v-if="compteFotos < meitatFotos" class="ma-indicador">👉 Fent servir la <b>PRIMERA MÀ</b></p>
-      <p v-else class="ma-indicador">👉 Fent servir la <b>SEGONA MÀ</b></p>
-      
-      <div class="progress-bar">
-        <div class="progress" :style="{ width: (compteFotos / maxFotos) * 100 + '%' }"></div>
-      </div>
-      <p>{{ compteFotos }} / {{ maxFotos }} fotos</p>
+    <div v-else-if="estaPreparant" class="recording pausa-container">
+      <h3>Preparat per al gest: "{{ nomGest }}"</h3>
+      <p>Començant en:</p>
+      <div class="compte-enrere">{{ segonsPreparacio }}</div>
     </div>
 
-    <div v-else-if="estaEnPausa" class="recording pausa-container">
-      <h3>Canvia de mà! ✋🔄🤚</h3>
-      <p>La gravació es reprendrà en:</p>
-      <div class="compte-enrere">{{ segonsRestants }}</div>
+    <div v-else-if="estaGravant && !estaComprimint" class="recording">
+      <h3>Gravant "{{ nomGest }}"...</h3>
+      <p>Mou lleugerament les mans (canvia la distància i l'angle per donar més varietat)</p>
+      
+      <div class="progress-bar">
+        <div class="progress" :style="{ width: (compteMostres / maxMostres) * 100 + '%' }"></div>
+      </div>
+      <p>{{ compteMostres }} / {{ maxMostres }} mostres capturades</p>
     </div>
 
     <div v-else-if="estaComprimint" class="recording">
-      <h3>Processant l'arxiu ZIP...</h3>
+      <h3>Processant dades...</h3>
       <p>Espera un moment, si us plau 📦</p>
     </div>
   </div>
@@ -35,7 +33,6 @@
 
 <script setup>
 import { ref } from 'vue';
-import JSZip from 'jszip';
 
 // AÑADIMOS LA VARIABLE 'usantIAv2'
 const props = defineProps({
@@ -46,94 +43,124 @@ const props = defineProps({
   usantIAv2: {
     type: Boolean,
     default: true
+  },
+  handsData: {
+    type: Array,
+    default: () => []
   }
 });
 
+const textGestos = ref('');
+const gestosPents = ref([]);
 const nomGest = ref('');
 const estaGravant = ref(false);
 const estaComprimint = ref(false); 
-const estaEnPausa = ref(false);
+const estaPreparant = ref(false);
 
-const compteFotos = ref(0);
-const maxFotos = 200; 
-const meitatFotos = 100;
-const tempsPausa = 5; 
-const segonsRestants = ref(0);
+const compteMostres = ref(0);
+const maxMostres = 100; // Només 100 mostres, súper ràpid!
+const tempsPreparacio = 3;
+const segonsPreparacio = ref(0);
 
 let idInterval = null;
-let zip = null;
-let carpeta = null;
+let dadesRecollides = []; // Emmagatzema les coordenades
 let sEstaAturant = false;
 
-const iniciarCaptura = () => {
-  const video = document.querySelector('video');
+const iniciarCua = () => {
+  const gestos = textGestos.value.split(',').map(g => g.trim().toUpperCase()).filter(g => g);
+  if (gestos.length === 0) return;
+  
+  gestosPents.value = gestos;
+  processarSeguentGest();
+};
 
-  if (!video) {
-    alert("No s'ha trobat cap càmera a la pantalla!");
+const processarSeguentGest = () => {
+  if (gestosPents.value.length === 0) {
+    textGestos.value = '';
+    // alert final s'executa a l'aturar l'última captura
     return;
   }
+  
+  nomGest.value = gestosPents.value.shift();
+  estaPreparant.value = true;
+  segonsPreparacio.value = tempsPreparacio;
+  
+  const idPreparacio = setInterval(() => {
+    segonsPreparacio.value--;
+    if (segonsPreparacio.value <= 0) {
+      clearInterval(idPreparacio);
+      estaPreparant.value = false;
+      iniciarCapturaGest();
+    }
+  }, 1000);
+};
 
-  const canvasWidth = video.videoWidth || video.clientWidth || 640;
-  const canvasHeight = video.videoHeight || video.clientHeight || 480;
-
-  if (canvasWidth === 0 || canvasHeight === 0) {
-    alert("Error: No es poden llegir les dimensions del vídeo.");
-    return;
-  }
-
+const iniciarCapturaGest = () => {
   estaGravant.value = true;
   estaComprimint.value = false;
-  estaEnPausa.value = false;
   sEstaAturant = false;
-  compteFotos.value = 0;
-  
-  zip = new JSZip();
-  // Creem la carpeta dins del ZIP amb el nom del gest
-  carpeta = zip.folder(nomGest.value);
-
-  const canvas = document.createElement('canvas');
-  canvas.width = canvasWidth;
-  canvas.height = canvasHeight;
-  const ctx = canvas.getContext('2d');
+  compteMostres.value = 0;
+  dadesRecollides = [];
 
   const capturarFotograma = () => {
     if (sEstaAturant) return;
 
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const mans = props.handsData;
+    if (!mans || mans.length === 0) return; 
+
+    const coordenadesOriginals = [];
+    const coordenadesMirrored = [];
     
-    canvas.toBlob((blob) => {
-      if (!blob) return;
+    // Primera mà (sempre n'hi haurà almenys una per arribar aquí)
+    if (mans.length > 0) {
+        for (let i = 0; i < mans[0].length; i++) {
+            coordenadesOriginals.push(mans[0][i].x, mans[0][i].y, mans[0][i].z);
+            coordenadesMirrored.push(1.0 - mans[0][i].x, mans[0][i].y, mans[0][i].z);
+        }
+    } else {
+        for (let i = 0; i < 63; i++) {
+            coordenadesOriginals.push(0);
+            coordenadesMirrored.push(0);
+        }
+    }
 
-      carpeta.file(`foto_${compteFotos.value}.jpg`, blob);
-      compteFotos.value++;
+    // Segona mà
+    if (mans.length > 1) {
+        for (let i = 0; i < mans[1].length; i++) {
+            coordenadesOriginals.push(mans[1][i].x, mans[1][i].y, mans[1][i].z);
+            coordenadesMirrored.push(1.0 - mans[1][i].x, mans[1][i].y, mans[1][i].z);
+        }
+    } else {
+        for (let i = 0; i < 63; i++) {
+            coordenadesOriginals.push(0);
+            coordenadesMirrored.push(0);
+        }
+    }
+    
+    dadesRecollides.push({
+        label: nomGest.value,
+        landmarks: coordenadesOriginals
+    });
+    
+    // Guardem també la versió mirall (Data Augmentation)
+    dadesRecollides.push({
+        label: nomGest.value,
+        landmarks: coordenadesMirrored
+    });
 
-      if (compteFotos.value === meitatFotos) {
-        ferPausa();
-      } 
-      else if (compteFotos.value >= maxFotos && !sEstaAturant) {
-        sEstaAturant = true;
-        aturarCaptura();
-      }
-    }, 'image/jpeg', 0.9);
+    processarMostraFeta();
+  };
+
+  const processarMostraFeta = () => {
+    compteMostres.value++;
+    if (compteMostres.value >= maxMostres && !sEstaAturant) {
+      sEstaAturant = true;
+      aturarCaptura();
+    }
   };
 
   const iniciarBucleFotos = () => {
-    idInterval = setInterval(capturarFotograma, 200);
-  };
-
-  const ferPausa = () => {
-    clearInterval(idInterval);
-    estaEnPausa.value = true;
-    segonsRestants.value = tempsPausa;
-
-    const compteEnrereId = setInterval(() => {
-      segonsRestants.value--;
-      if (segonsRestants.value <= 0) {
-        clearInterval(compteEnrereId);
-        estaEnPausa.value = false;
-        iniciarBucleFotos(); 
-      }
-    }, 1000);
+    idInterval = setInterval(capturarFotograma, 100);
   };
 
   iniciarBucleFotos();
@@ -144,12 +171,12 @@ const aturarCaptura = async () => {
   estaComprimint.value = true; 
   
   try {
-    const contingutZip = await zip.generateAsync({ type: "blob" });
+    const dadesJSON = JSON.stringify(dadesRecollides);
+    const jsonBlob = new Blob([dadesJSON], { type: "application/json" });
     
-    // SI LA V2 (AUTOMÁTICA) ESTÁ ACTIVA -> ENVIAR AL SERVIDOR
     if (props.usantIAv2) {
       const formData = new FormData();
-      formData.append('file', contingutZip, `dataset_${nomGest.value}.zip`);
+      formData.append('file', jsonBlob, `dataset_${nomGest.value}.json`);
       formData.append('gesto', nomGest.value);
 
       const resposta = await fetch('http://localhost:5000/api/upload-dataset', {
@@ -163,15 +190,14 @@ const aturarCaptura = async () => {
 
       const resultat = await resposta.json();
       console.log("Resposta del servidor:", resultat);
-      alert(`🤖 (IA V2) Molt bé! Fotos enviades al servidor. L'IA està aprenent el gest "${nomGest.value}" en segon pla.`);
     
-    // SI LA V1 (ORIGINAL) ESTÁ ACTIVA -> DESCARGAR EN EL PC
+    // SI LA V1 (ORIGINAL) ESTÁ ACTIVA -> DESCARGAR EN EL PC EL JSON
     } else {
       const enllac = document.createElement('a');
-      const url = URL.createObjectURL(contingutZip);
+      const url = URL.createObjectURL(jsonBlob);
       
       enllac.href = url;
-      enllac.download = `dataset_${nomGest.value}.zip`;
+      enllac.download = `${nomGest.value}.json`;
       
       document.body.appendChild(enllac); 
       enllac.click();                    
@@ -181,12 +207,21 @@ const aturarCaptura = async () => {
     }
 
   } catch (error) {
-    console.error("Error gestionant el ZIP: ", error);
-    alert("Hi ha hagut un error processant les fotos. Obre la consola per veure més detalls.");
+    console.error("Error gestionant el JSON: ", error);
+    alert("Hi ha hagut un error processant les dades. Obre la consola per veure més detalls.");
   } finally {
     estaGravant.value = false;
     estaComprimint.value = false;
-    nomGest.value = '';
+    
+    if (gestosPents.value.length > 0) {
+      setTimeout(() => {
+        processarSeguentGest();
+      }, 1500); // Petita pausa abans del següent gest
+    } else {
+      nomGest.value = '';
+      textGestos.value = '';
+      alert("Tots els gestos s'han gravat i processat correctament!");
+    }
   }
 };
 </script>
@@ -205,7 +240,7 @@ const aturarCaptura = async () => {
   text-align: center;
 }
 
-.controls input, .controls button {
+.controls input, .controls textarea, .controls button {
   width: 100%;
   padding: 10px;
   margin-top: 10px;
@@ -214,9 +249,11 @@ const aturarCaptura = async () => {
   background-color: #333333; 
   border: 1px solid #555555; 
   border-radius: 5px; 
+  font-family: inherit;
+  resize: vertical;
 }
 
-.controls input::placeholder {
+.controls input::placeholder, .controls textarea::placeholder {
   color: #aaaaaa;
 }
 

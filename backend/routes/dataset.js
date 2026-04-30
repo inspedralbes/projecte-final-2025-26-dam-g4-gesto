@@ -1,13 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const extract = require('extract-zip');
 const { exec } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
 
-// Configuració de Multer per guardar el ZIP temporalment
+// Configuració de Multer per guardar el JSON temporalment
 const upload = multer({ dest: 'temp_uploads/' });
 
 
@@ -19,15 +18,15 @@ router.post('/upload-dataset', upload.single('file'), async (req, res) => {
 
 
        const gesto = req.body.gesto;
-       const zipPath = path.resolve(req.file.path);
+       const tempPath = path.resolve(req.file.path);
 
 
        // --- RUTA ABSOLUTA CONFIGURADA EN TU DOCKER-COMPOSE ---
        // Según tu 'volumes', ./gesto está en /usr/src/gesto
        const baseProjectDir = '/usr/src/gesto/public/entrenament_signes';
-       const extractPath = path.join(baseProjectDir, 'tutorial');       
+       const dataPath = path.join(baseProjectDir, 'tutorial');       
        
-       console.log(`Rebent fotos per al gest: '${gesto}'...`);
+       console.log(`Rebent dades JSON per al gest: '${gesto}'...`);
        
        // Verificación de seguridad para asegurar que el volumen está bien montado
        if (!fs.existsSync(baseProjectDir)) {
@@ -36,17 +35,20 @@ router.post('/upload-dataset', upload.single('file'), async (req, res) => {
        }
 
 
-       // Descomprimir el ZIP
-       await extract(zipPath, { dir: extractPath });
+       if (!fs.existsSync(dataPath)) {
+           fs.mkdirSync(dataPath, { recursive: true });
+       }
 
+       // Moure l'arxiu JSON al directori tutorial (usant copy i unlink per evitar EXDEV)
+       const targetPath = path.join(dataPath, `${gesto}.json`);
+       fs.copyFileSync(tempPath, targetPath);
+       fs.unlinkSync(tempPath);
 
-       // Esborrar l'arxiu ZIP temporal
-       fs.unlinkSync(zipPath);
-       console.log(`Fotos descomprimides correctament a ${extractPath}.`);
+       console.log(`Dades guardades correctament a ${targetPath}.`);
 
 
        // Respondre al frontend ràpidament
-       res.json({ message: "Dataset rebut i descomprimit. L'entrenament ha començat en segon pla." });
+       res.json({ message: "Dataset rebut correctament. L'entrenament ha començat en segon pla." });
 
 
        // Executar Python en segon pla

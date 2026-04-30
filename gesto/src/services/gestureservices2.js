@@ -81,14 +81,24 @@ export class GestureService {
        console.log("✅ GestureService V2 destruït correctament.");
    }
 
-   _predirSigne(ma) {
+   _predirSigne(mans) {
        if (!this.model) return null;
 
        const coordenadesPlanes = [];
-       for (let i = 0; i < ma.length; i++) {
-           coordenadesPlanes.push(ma[i].x);
-           coordenadesPlanes.push(ma[i].y);
-           coordenadesPlanes.push(ma[i].z);
+       if (mans.length > 0) {
+           for (let i = 0; i < mans[0].length; i++) {
+               coordenadesPlanes.push(mans[0][i].x, mans[0][i].y, mans[0][i].z);
+           }
+       } else {
+           for (let i = 0; i < 63; i++) coordenadesPlanes.push(0);
+       }
+
+       if (mans.length > 1) {
+           for (let i = 0; i < mans[1].length; i++) {
+               coordenadesPlanes.push(mans[1][i].x, mans[1][i].y, mans[1][i].z);
+           }
+       } else {
+           for (let i = 0; i < 63; i++) coordenadesPlanes.push(0);
        }
 
        let inputTensor = null;
@@ -121,7 +131,7 @@ export class GestureService {
        }
 
        if (mans.length > 0) {
-           const signeActual = this._predirSigne(mans[0]);
+           const signeActual = this._predirSigne(mans);
 
            if (!signeActual) return null;
 
