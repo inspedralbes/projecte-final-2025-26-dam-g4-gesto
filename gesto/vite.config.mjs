@@ -67,5 +67,10 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    watch: {
+      // Ignorem carpetes pesades que no canvien mai (com el venv de Python)
+      // per evitar l'error ENOSPC (límit de watchers del sistema)
+      ignored: ['**/public/entrenament_signes/venv/**']
+    }
   },
 })

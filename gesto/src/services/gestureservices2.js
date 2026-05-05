@@ -81,25 +81,69 @@ export class GestureService {
        console.log("✅ GestureService V2 destruït correctament.");
    }
 
+   _normalizeFlatLandmarks(flatLandmarks) {
+       const sum = flatLandmarks.reduce((a, b) => Math.abs(a) + Math.abs(b), 0);
+       if (sum === 0) {
+           return new Array(63).fill(0.0);
+       }
+
+       const baseX = flatLandmarks[0];
+       const baseY = flatLandmarks[1];
+       const baseZ = flatLandmarks[2];
+       let normalized = [];
+       let maxDist = 0.0;
+
+       for (let i = 0; i < 63; i += 3) {
+           const nx = flatLandmarks[i] - baseX;
+           const ny = flatLandmarks[i + 1] - baseY;
+           const nz = flatLandmarks[i + 2] - baseZ;
+           normalized.push([nx, ny, nz]);
+
+           const dist = Math.sqrt(nx * nx + ny * ny + nz * nz);
+           if (dist > maxDist) {
+               maxDist = dist;
+           }
+       }
+
+       let result = [];
+       if (maxDist > 0) {
+           for (let point of normalized) {
+               result.push(point[0] / maxDist, point[1] / maxDist, point[2] / maxDist);
+           }
+       } else {
+           for (let point of normalized) {
+               result.push(point[0], point[1], point[2]);
+           }
+       }
+
+       return result;
+   }
+
    _predirSigne(mans) {
        if (!this.model) return null;
 
-       const coordenadesPlanes = [];
+       let rawHand1 = [];
+       let rawHand2 = [];
+
        if (mans.length > 0) {
            for (let i = 0; i < mans[0].length; i++) {
-               coordenadesPlanes.push(mans[0][i].x, mans[0][i].y, mans[0][i].z);
+               rawHand1.push(mans[0][i].x, mans[0][i].y, mans[0][i].z);
            }
        } else {
-           for (let i = 0; i < 63; i++) coordenadesPlanes.push(0);
+           for (let i = 0; i < 63; i++) rawHand1.push(0);
        }
 
        if (mans.length > 1) {
            for (let i = 0; i < mans[1].length; i++) {
-               coordenadesPlanes.push(mans[1][i].x, mans[1][i].y, mans[1][i].z);
+               rawHand2.push(mans[1][i].x, mans[1][i].y, mans[1][i].z);
            }
        } else {
-           for (let i = 0; i < 63; i++) coordenadesPlanes.push(0);
+           for (let i = 0; i < 63; i++) rawHand2.push(0);
        }
+
+       const normHand1 = this._normalizeFlatLandmarks(rawHand1);
+       const normHand2 = this._normalizeFlatLandmarks(rawHand2);
+       const coordenadesPlanes = normHand1.concat(normHand2);
 
        let inputTensor = null;
        let prediccio = null;

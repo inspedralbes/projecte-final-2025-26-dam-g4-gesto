@@ -41,6 +41,37 @@ dades = []
 etiquetes = []
 
 
+# --- NOVA FUNCIÓ DE NORMALITZACIÓ ---
+def normalize_flat_landmarks(flat_landmarks):
+    if sum(flat_landmarks) == 0:
+        return [0.0] * 63
+        
+    base_x, base_y, base_z = flat_landmarks[0], flat_landmarks[1], flat_landmarks[2]
+    normalized = []
+    max_dist = 0.0
+    
+    # Translació (posar la nina a 0,0,0)
+    for i in range(0, 63, 3):
+        nx = flat_landmarks[i] - base_x
+        ny = flat_landmarks[i+1] - base_y
+        nz = flat_landmarks[i+2] - base_z
+        normalized.append([nx, ny, nz])
+        
+        dist = np.sqrt(nx**2 + ny**2 + nz**2)
+        if dist > max_dist:
+            max_dist = dist
+            
+    # Escala (dividir per la distància màxima)
+    result = []
+    if max_dist > 0:
+        for point in normalized:
+            result.extend([point[0]/max_dist, point[1]/max_dist, point[2]/max_dist])
+    else:
+        for point in normalized:
+            result.extend([point[0], point[1], point[2]])
+            
+    return result
+
 print("\n--- FASE 1: Càrrega de coordenades des de JSON o Imatges (Llegat) ---")
 for classe in CLASSES:
     ruta_json = os.path.join(DIRECTORI_DATASET, f"{classe}.json")
@@ -53,7 +84,26 @@ for classe in CLASSES:
                 contingut = json.load(f)
                 for mostra in contingut:
                     if "landmarks" in mostra and len(mostra["landmarks"]) == 126:
-                        dades.append(mostra["landmarks"])
+                        lm = mostra["landmarks"]
+                        
+                        # Comprovar si ja està normalitzat (nina prop de 0,0,0)
+                        if abs(lm[0]) > 0.001 or abs(lm[1]) > 0.001:
+                            hand1 = normalize_flat_landmarks(lm[0:63])
+                            hand2 = normalize_flat_landmarks(lm[63:126])
+                            lm = hand1 + hand2
+                            
+                        dades.append(lm)
+                        etiquetes.append(classe)
+                        
+                        # DATA AUGMENTATION (Soroll aleatori)
+                        noisy_lm = []
+                        for i, val in enumerate(lm):
+                            # No afegim soroll a la nina ni a punts buits
+                            if val != 0 and i % 63 not in (0, 1, 2):
+                                noisy_lm.append(val + np.random.uniform(-0.02, 0.02))
+                            else:
+                                noisy_lm.append(val)
+                        dades.append(noisy_lm)
                         etiquetes.append(classe)
         except Exception as e:
             print(f"Error processant {ruta_json}: {e}")
@@ -78,24 +128,33 @@ for classe in CLASSES:
                 mp_image = mp.Image.create_from_file(ruta_imatge)
                 detection_result = detector.detect(mp_image)
                 
-                coordenades = []
-                coordenades_mirrored = []
+                raw_hand1 = [0.0]*63
+                raw_hand1_mirrored = [0.0]*63
+                raw_hand2 = [0.0]*63
+                raw_hand2_mirrored = [0.0]*63
                 
                 if detection_result.hand_landmarks and len(detection_result.hand_landmarks) > 0:
+                    raw_hand1 = []
+                    raw_hand1_mirrored = []
                     for landmark in detection_result.hand_landmarks[0]:
-                        coordenades.extend([landmark.x, landmark.y, landmark.z])
-                        coordenades_mirrored.extend([1.0 - landmark.x, landmark.y, landmark.z])
-                else:
-                    coordenades.extend([0]*63)
-                    coordenades_mirrored.extend([0]*63)
+                        raw_hand1.extend([landmark.x, landmark.y, landmark.z])
+                        raw_hand1_mirrored.extend([1.0 - landmark.x, landmark.y, landmark.z])
                 
                 if detection_result.hand_landmarks and len(detection_result.hand_landmarks) > 1:
+                    raw_hand2 = []
+                    raw_hand2_mirrored = []
                     for landmark in detection_result.hand_landmarks[1]:
-                        coordenades.extend([landmark.x, landmark.y, landmark.z])
-                        coordenades_mirrored.extend([1.0 - landmark.x, landmark.y, landmark.z])
-                else:
-                    coordenades.extend([0]*63)
-                    coordenades_mirrored.extend([0]*63)
+                        raw_hand2.extend([landmark.x, landmark.y, landmark.z])
+                        raw_hand2_mirrored.extend([1.0 - landmark.x, landmark.y, landmark.z])
+                
+                # Apliquem normalització
+                norm_hand1 = normalize_flat_landmarks(raw_hand1)
+                norm_hand2 = normalize_flat_landmarks(raw_hand2)
+                norm_hand1_mirrored = normalize_flat_landmarks(raw_hand1_mirrored)
+                norm_hand2_mirrored = normalize_flat_landmarks(raw_hand2_mirrored)
+                
+                coordenades = norm_hand1 + norm_hand2
+                coordenades_mirrored = norm_hand1_mirrored + norm_hand2_mirrored
                 
                 if sum(coordenades) != 0:
                     noves_mostres.append({"label": classe, "landmarks": coordenades})
@@ -104,13 +163,24 @@ for classe in CLASSES:
                     dades.append(coordenades_mirrored)
                     etiquetes.append(classe)
                     etiquetes.append(classe)
+                    
+                    # DATA AUGMENTATION per imatges (Afegir soroll)
+                    for _ in range(2): # Creem 2 mostres amb soroll per imatge
+                        noisy = []
+                        for i, val in enumerate(coordenades):
+                            if val != 0 and i % 63 not in (0, 1, 2):
+                                noisy.append(val + np.random.uniform(-0.02, 0.02))
+                            else:
+                                noisy.append(val)
+                        dades.append(noisy)
+                        etiquetes.append(classe)
             except Exception:
                 pass
                 
         if len(noves_mostres) > 0:
             with open(ruta_json, 'w') as f:
                 json.dump(noves_mostres, f)
-            print(f"  -> Creat {classe}.json amb {len(noves_mostres)} mostres!")
+            print(f"  -> Creat {classe}.json amb {len(noves_mostres)} mostres (Ja normalitzades)!")
 
 
 X = np.array(dades)
@@ -156,9 +226,9 @@ model = tf.keras.Sequential([
    tf.keras.layers.Dense(numero_classes_reals, activation='softmax')
 ])
 
-# Ajustamos cómo aprende y le damos más tiempo de estudio (100 epochs en lugar de 50)
+# Ajustamos cómo aprende (50 epochs)
 model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-model.fit(X_train, y_train, epochs=100, batch_size=32, validation_data=(X_test, y_test))
+model.fit(X_train, y_train, epochs=50, batch_size=32, validation_data=(X_test, y_test))
 
 
 print("\n--- FASE 3: Exportació Automàtica per a la Web ---")
@@ -173,4 +243,3 @@ with open(ruta_json, "w") as f:
 
 
 print(f"¡Model i etiquetes exportats correctament a '{RUTA_EXPORTACIO}'!")
-print("Ja pots recarregar la teva pàgina web, no has de tocar cap codi!")

@@ -137,16 +137,22 @@ const predictLoop = () => {
   if (gestureService && !carregant.value && videoRef.value && videoRef.value.readyState === 4) {
     const resultado = gestureService.detect(videoRef.value, performance.now());
 
-    if (resultado && resultado.signo) {
-      manosDetectadas.value = resultado.hands;
-      const newSigno = resultado.signo;
-
-      if (newSigno !== signoDetectado.value) {
-        signoDetectado.value = newSigno;
-        if (newSigno !== lastSpokenSigno.value && newSigno !== "Mà detectada" && newSigno !== "Esperant signes...") {
-          speak(newSigno);
-          lastSpokenSigno.value = newSigno;
+    if (resultado) {
+      // Sempre actualitzem les mans si n'hi ha, independentment de si reconeix un signe o no
+      manosDetectadas.value = resultado.hands || [];
+      
+      if (resultado.signo) {
+        const newSigno = resultado.signo;
+        if (newSigno !== signoDetectado.value) {
+          signoDetectado.value = newSigno;
+          if (newSigno !== lastSpokenSigno.value && newSigno !== "Mà detectada" && newSigno !== "Esperant signes...") {
+            speak(newSigno);
+            lastSpokenSigno.value = newSigno;
+          }
         }
+      } else {
+        signoDetectado.value = manosDetectadas.value.length > 0 ? "Mà detectada..." : "";
+        lastSpokenSigno.value = null; 
       }
     } else {
       manosDetectadas.value = [];
