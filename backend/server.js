@@ -17,7 +17,8 @@ connectDB();
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
-app.use('/api',require('./routes/dataset'));
+app.use('/api', require('./routes/dataset'));
+app.use('/api/gemini', require('./routes/gemini'));
 const PORT = process.env.PORT || 5000;
 
 

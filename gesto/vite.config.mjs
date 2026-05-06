@@ -67,6 +67,13 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    proxy: {
+      // Redirigeix totes les crides /api al backend (port 5000)
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+      }
+    },
     watch: {
       // Ignorem carpetes pesades que no canvien mai (com el venv de Python)
       // per evitar l'error ENOSPC (límit de watchers del sistema)
