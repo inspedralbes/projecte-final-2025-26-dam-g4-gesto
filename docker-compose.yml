@@ -1,5 +1,6 @@
 services:
   backend:
+    restart: always
     build: ./backend
     ports:
       - "5000:5000"
@@ -11,6 +12,7 @@ services:
       - ./backend/.env
 
   frontend:
+    restart: always
     build: ./gesto
     ports:
       - "3000:3000"
