@@ -15,7 +15,7 @@ services:
     restart: always
     build: ./gesto
     ports:
-      - "3000:3000"
+      - "80:3000"
     volumes:
       - ./gesto:/app
       - /app/node_modules

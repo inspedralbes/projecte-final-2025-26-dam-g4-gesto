@@ -179,7 +179,7 @@ const aturarCaptura = async () => {
       formData.append('file', jsonBlob, `dataset_${nomGest.value}.json`);
       formData.append('gesto', nomGest.value);
 
-      const resposta = await fetch('http://localhost:5000/api/upload-dataset', {
+      const resposta = await fetch(`${import.meta.env.VITE_API_URL}/api/upload-dataset`, {
         method: 'POST',
         body: formData
       });
