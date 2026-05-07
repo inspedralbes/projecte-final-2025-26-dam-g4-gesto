@@ -121,8 +121,16 @@ const borrarUltimaParaula = () => {
   bufferParaules.value.pop();
   ultimaParaulaAfegida.value = bufferParaules.value[bufferParaules.value.length - 1] ?? null;
 };
-const netejarBuffer = () => { bufferParaules.value = []; ultimaParaulaAfegida.value = null; fraseGemini.value = ''; };
-const llegirBuffer = () => { if (bufferParaules.value.length) speak(bufferParaules.value.join(' ')); };
+const netejarBuffer = () => {
+  bufferParaules.value = [];
+  ultimaParaulaAfegida.value = null;
+  fraseGemini.value = '';
+};
+const llegirBuffer = () => {
+  if (bufferParaules.value.length) {
+    speak(bufferParaules.value.join(' '));
+  }
+};
 
 const generarFraseGemini = async () => {
   if (!bufferParaules.value.length || carregantGemini.value) return;
@@ -144,7 +152,8 @@ const speak = (text) => {
   if ('speechSynthesis' in window) {
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'ca-ES'; u.rate = 1.2;
+    u.lang = 'ca-ES';
+    u.rate = 1.2;
     window.speechSynthesis.speak(u);
   }
 };
@@ -152,7 +161,10 @@ const speak = (text) => {
 const carregarIA = async () => {
   carregant.value = true;
   signoDetectado.value = 'Carregant model...';
-  if (gestureService) { gestureService.destroy(); gestureService = null; }
+  if (gestureService) {
+    gestureService.destroy();
+    gestureService = null;
+  }
   try {
     gestureService = usantIAv2.value ? new GestureServiceV2() : new GestureServiceOriginal();
     await gestureService.initialize();
@@ -164,21 +176,42 @@ const carregarIA = async () => {
   }
 };
 
-const canviarIA = async () => { usantIAv2.value = !usantIAv2.value; await carregarIA(); };
+const canviarIA = async () => {
+  usantIAv2.value = !usantIAv2.value;
+  await carregarIA();
+};
 
 const startCamera = async () => {
   if (currentStream) currentStream.getTracks().forEach(t => t.stop());
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode.value, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false });
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: facingMode.value,
+        width: { ideal: 1920 },
+        height: { ideal: 1080 }
+      },
+      audio: false
+    });
     currentStream = stream;
-    if (videoRef.value) { videoRef.value.srcObject = stream; videoRef.value.onloadeddata = () => { if (animationFrameId) cancelAnimationFrame(animationFrameId); predictLoop(); }; }
+    if (videoRef.value) {
+      videoRef.value.srcObject = stream;
+      videoRef.value.onloadeddata = () => {
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+        }
+        predictLoop();
+      };
+    }
     error.value = null;
   } catch (err) {
     error.value = "No s'ha pogut accedir a la càmera. Verifica els permisos.";
   }
 };
 
-const switchCamera = () => { facingMode.value = facingMode.value === 'environment' ? 'user' : 'environment'; startCamera(); };
+const switchCamera = () => {
+  facingMode.value = facingMode.value === 'environment' ? 'user' : 'environment';
+  startCamera();
+};
 const goHome = () => router.push('/');
 
 const predictLoop = () => {
@@ -188,12 +221,17 @@ const predictLoop = () => {
       manosDetectadas.value = result.hands || [];
       if (result.signo) {
         const s = result.signo;
-        if (s !== signoDetectado.value) { signoDetectado.value = s; lastSpokenSigno.value = s; }
+        if (s !== signoDetectado.value) {
+          signoDetectado.value = s;
+          lastSpokenSigno.value = s;
+        }
         const valid = s !== 'none' && s !== 'Mà detectada' && s !== 'Esperant signes...';
         if (valid && s !== ultimaParaulaAfegida.value) {
           bufferParaules.value.push(s);
           ultimaParaulaAfegida.value = s;
-          if (bufferParaules.value.length > 15) bufferParaules.value.shift();
+          if (bufferParaules.value.length > 15) {
+            bufferParaules.value.shift();
+          }
         }
       } else {
         signoDetectado.value = manosDetectadas.value.length > 0 ? 'Mà detectada...' : '';
@@ -201,13 +239,19 @@ const predictLoop = () => {
         ultimaParaulaAfegida.value = null;
       }
     } else {
-      manosDetectadas.value = []; signoDetectado.value = ''; lastSpokenSigno.value = null; ultimaParaulaAfegida.value = null;
+      manosDetectadas.value = [];
+      signoDetectado.value = '';
+      lastSpokenSigno.value = null;
+      ultimaParaulaAfegida.value = null;
     }
   }
   animationFrameId = requestAnimationFrame(predictLoop);
 };
 
-onMounted(async () => { await carregarIA(); startCamera(); });
+onMounted(async () => {
+  await carregarIA();
+  startCamera();
+});
 onBeforeUnmount(() => {
   if (animationFrameId) cancelAnimationFrame(animationFrameId);
   if (currentStream) currentStream.getTracks().forEach(t => t.stop());

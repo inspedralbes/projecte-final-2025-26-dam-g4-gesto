@@ -1,3 +1,5 @@
+import * as tf from '@tensorflow/tfjs';
+
 export class GestureService {
     constructor() {
         this.handLandmarker = null;
@@ -146,77 +148,42 @@ export class GestureService {
             let novaParaula = null;
 
             // GESTOS ESTÀTICS
-            if (signeActual === "dit_tocant_pit") {
-                this.estatAnterior = null;
-                novaParaula = "Jo";
-            }
+            const gestosEstàtics = {
+                "dit_tocant_pit": "Jo",
+                "mans_tancades": "Amic",
+                "tenir": "Tenir",
+                "1": "1",
+                "0": "0",
+                "hola": "Hola",
+                "gracies": "Gràcies"
+            };
 
-            if (signeActual === "mans_tancades") {
+            if (gestosEstàtics[signeActual]) {
                 this.estatAnterior = null;
-                novaParaula = "Amic";
-            }
-
-            if (signeActual === "tenir") {
-                this.estatAnterior = null;
-                novaParaula = "Tenir";
-            }
-
-            if (signeActual === "1") {
-                this.estatAnterior = null;
-                novaParaula = "1";
-            }
-
-            if (signeActual === "0") {
-                this.estatAnterior = null;
-                novaParaula = "0";
-            }
-
-            if (signeActual === "hola") {
-                this.estatAnterior = null;
-                novaParaula = "Hola";
-            }
-
-            if (signeActual === "gracies") {
-                this.estatAnterior = null;
-                novaParaula = "Gràcies";
-            }
-
-            // GESTOS DE SEQÜÈNCIA
-            if (signeActual === "adeu_inici") {
+                novaParaula = gestosEstàtics[signeActual];
+            } else if (signeActual === "adeu_inici") { // GESTOS DE SEQÜÈNCIA
                 this.estatAnterior = "adeu_inici";
                 this.marcaTempsEstatAnterior = timestamp;
-            }
-            
-            if (signeActual === "dit_abaix_nas") {
+            } else if (signeActual === "dit_abaix_nas") {
                 this.estatAnterior = "dit_abaix_nas";
                 this.marcaTempsEstatAnterior = timestamp;
-            }
-
-            if (signeActual === "polze_costat") {
+            } else if (signeActual === "polze_costat") {
                 if (this.estatAnterior === "dit_abaix_nas" && (timestamp - this.marcaTempsEstatAnterior < this.MAX_TEMPS_ENTRE_PASSOS)) {
                     novaParaula = "Ell";
-                    this.estatAnterior = null; 
-                }
-                else if (this.estatAnterior === "adeu_inici" && (timestamp - this.marcaTempsEstatAnterior < this.MAX_TEMPS_ENTRE_PASSOS)) {
+                    this.estatAnterior = null;
+                } else if (this.estatAnterior === "adeu_inici" && (timestamp - this.marcaTempsEstatAnterior < this.MAX_TEMPS_ENTRE_PASSOS)) {
                     novaParaula = "Adeu";
-                    this.estatAnterior = null; 
+                    this.estatAnterior = null;
                 }
-            }
-
-            if (signeActual === "agafar_inici") {
+            } else if (signeActual === "agafar_inici") {
                 this.estatAnterior = "agafar_inici";
                 this.marcaTempsEstatAnterior = timestamp;
-            }
-
-            if (signeActual === "agafar_fi") {
+            } else if (signeActual === "agafar_fi") {
                 if (this.estatAnterior === "agafar_inici" && (timestamp - this.marcaTempsEstatAnterior < this.MAX_TEMPS_ENTRE_PASSOS)) {
                     novaParaula = "Agafar";
                     this.estatAnterior = null;
                 }
-            }
-
-            // FALLBACK PER GESTOS NOUS (ex. SIXSEVEN)
-            if (!novaParaula && !["none", "0", "1"].includes(signeActual)) {
+            } else if (!["none", "0", "1"].includes(signeActual)) { // FALLBACK PER GESTOS NOUS
                 if (!signeActual.includes("_inici") && !signeActual.includes("_fi") && !signeActual.includes("_costat")) {
                     novaParaula = signeActual;
                     this.estatAnterior = null;
