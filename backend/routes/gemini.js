@@ -13,11 +13,6 @@ router.post('/generar-frase', async (req, res) => {
         return res.status(400).json({ error: 'Cal enviar un array de signes detectats.' });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-        return res.status(500).json({ error: 'Gemini API key no configurada.' });
-    }
-
     // Filtrem el signe "none" i netegem la llista
     const signesNets = signes.filter(s => s && s.toLowerCase() !== 'none');
 
@@ -41,42 +36,43 @@ Regles estrictes:
 - Respon ÚNICAMENT amb la frase final, sense explicacions, sense cometes, sense punts suspensius.`;
 
     try {
+        // Llamada a la API local de Ollama (a través de la red de Docker)
         const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+            `http://ollama:11434/api/generate`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    contents: [{
-                        parts: [{ text: prompt }]
-                    }],
-                    generationConfig: {
+                    model: process.env.OLLAMA_MODEL || 'gemma:2b', // Usa gemma:2b por defecto por las limitaciones de RAM
+                    prompt: prompt,
+                    stream: false,
+                    options: {
                         temperature: 0.5,
-                        maxOutputTokens: 200,
+                        num_predict: 200
                     }
                 })
             }
         );
 
         if (!response.ok) {
-            const errorData = await response.json();
-            console.error('Error de Gemini API:', errorData);
-            return res.status(500).json({ error: 'Error comunicant amb Gemini API.', detall: errorData });
+            const errorData = await response.json().catch(() => ({}));
+            console.error('Error de Ollama API:', errorData);
+            return res.status(500).json({ error: 'Error comunicant amb Ollama API. Assegurat que Ollama està corrent al port 11434.', detall: errorData });
         }
 
         const data = await response.json();
-        const frase = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        const frase = data?.response?.trim();
 
         if (!frase) {
-            return res.status(500).json({ error: 'Gemini no ha retornat cap frase.' });
+            return res.status(500).json({ error: 'Ollama no ha retornat cap frase.' });
         }
 
-        console.log(`✅ Gemini ha generat: "${frase}" per als signes: [${signesNets.join(', ')}]`);
+        console.log(`✅ Ollama ha generat: "${frase}" per als signes: [${signesNets.join(', ')}]`);
         res.json({ frase });
 
     } catch (error) {
-        console.error('Error cridant a Gemini:', error);
-        res.status(500).json({ error: 'Error intern cridant a Gemini API.' });
+        console.error('Error cridant a Ollama:', error);
+        res.status(500).json({ error: 'Error intern cridant a Ollama API. ¿Està el servei d\\'Ollama en marxa?' });
     }
 });
 
