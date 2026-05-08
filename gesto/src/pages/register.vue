@@ -54,6 +54,7 @@
 <script>
 import AOS from 'aos';
 import 'aos/dist/aos.css';
+import Swal from 'sweetalert2';
 
 export default {
   name: 'RegisterPage',
@@ -78,7 +79,14 @@ export default {
   methods: {
     async handleRegister() {
       if (this.form.password !== this.form.confirmPassword) {
-        alert('Les contrasenyes no coincideixen');
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Les contrasenyes no coincideixen',
+          background: '#1a1a1a',
+          color: '#fff',
+          confirmButtonColor: '#00BFFF'
+        });
         return;
       }
 
@@ -98,14 +106,38 @@ export default {
         const data = await response.json();
 
         if (response.ok) {
-          alert('Registre completat amb èxit!');
+          await Swal.fire({
+            icon: 'success',
+            title: 'Perfecte!',
+            text: 'Registre completat amb èxit!',
+            background: '#1a1a1a',
+            color: '#fff',
+            confirmButtonColor: '#00BFFF',
+            timer: 2000,
+            timerProgressBar: true,
+            showConfirmButton: false
+          });
           this.$router.push('/login');
         } else {
-          alert(data.msg || 'Error en el registre');
+          Swal.fire({
+            icon: 'error',
+            title: 'Error en el registre',
+            text: data.msg || 'No s\'ha pogut completar el registre.',
+            background: '#1a1a1a',
+            color: '#fff',
+            confirmButtonColor: '#00BFFF'
+          });
         }
       } catch (error) {
         console.error('Error:', error);
-        alert('Error de connexió amb el servidor');
+        Swal.fire({
+          icon: 'error',
+          title: 'Error de connexió',
+          text: 'No s\'ha pogut connectar amb el servidor',
+          background: '#1a1a1a',
+          color: '#fff',
+          confirmButtonColor: '#00BFFF'
+        });
       }
     }
   }
