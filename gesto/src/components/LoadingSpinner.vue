@@ -1,21 +1,21 @@
 <template>
   <div aria-label="Orange and tan hamster running in a metal wheel" role="img" class="wheel-and-hamster">
-  	<div class="wheel"></div>
-  	<div class="hamster">
-  		<div class="hamster__body">
-  			<div class="hamster__head">
-  				<div class="hamster__ear"></div>
-  				<div class="hamster__eye"></div>
-  				<div class="hamster__nose"></div>
-  			</div>
-  			<div class="hamster__limb hamster__limb--fr"></div>
-  			<div class="hamster__limb hamster__limb--fl"></div>
-  			<div class="hamster__limb hamster__limb--br"></div>
-  			<div class="hamster__limb hamster__limb--bl"></div>
-  			<div class="hamster__tail"></div>
-  		</div>
-  	</div>
-  	<div class="spoke"></div>
+    <div class="wheel"></div>
+    <div class="hamster">
+      <div class="hamster__body">
+        <div class="hamster__head">
+          <div class="hamster__ear"></div>
+          <div class="hamster__eye"></div>
+          <div class="hamster__nose"></div>
+        </div>
+        <div class="hamster__limb hamster__limb--fr"></div>
+        <div class="hamster__limb hamster__limb--fl"></div>
+        <div class="hamster__limb hamster__limb--br"></div>
+        <div class="hamster__limb hamster__limb--bl"></div>
+        <div class="hamster__tail"></div>
+      </div>
+    </div>
+    <div class="spoke"></div>
   </div>
 </template>
 
@@ -65,7 +65,7 @@
     background: hsl(30,90%,55%);
     border-radius: 70% 30% 0 100% / 40% 25% 25% 60%;
     box-shadow: 0 -0.25em 0 hsl(30,90%,80%) inset,
-  		0.75em -1.55em 0 hsl(30,90%,90%) inset;
+      0.75em -1.55em 0 hsl(30,90%,90%) inset;
     top: 0;
     left: -2em;
     width: 2.75em;
@@ -109,7 +109,7 @@
     background: hsl(30,90%,90%);
     border-radius: 50% 30% 50% 30% / 15% 60% 40% 40%;
     box-shadow: 0.1em 0.75em 0 hsl(30,90%,55%) inset,
-  		0.15em -0.5em 0 hsl(30,90%,80%) inset;
+      0.15em -0.5em 0 hsl(30,90%,80%) inset;
     top: 0.25em;
     left: 2em;
     width: 4.5em;
@@ -179,7 +179,7 @@
   .spoke {
     animation: spoke var(--dur) linear infinite;
     background: radial-gradient(100% 100% at center,hsl(0,0%,60%) 4.8%,hsla(0,0%,60%,0) 5%),
-  		linear-gradient(hsla(0,0%,55%,0) 46.9%,hsl(0,0%,65%) 47% 52.9%,hsla(0,0%,65%,0) 53%) 50% 50% / 99% 99% no-repeat;
+      linear-gradient(hsla(0,0%,55%,0) 46.9%,hsl(0,0%,65%) 47% 52.9%,hsla(0,0%,65%,0) 53%) 50% 50% / 99% 99% no-repeat;
   }
 
   /* Animations */
