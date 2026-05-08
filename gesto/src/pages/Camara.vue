@@ -122,7 +122,7 @@ const bufferParaules = ref([]);
 const fraseGemini = ref('');
 const carregantGemini = ref(false);
 const ultimaParaulaAfegida = ref(null);
-const GEMINI_API_URL = 'http://localhost:5000/api/gemini/generar-frase';
+const GEMINI_API_URL = '/api/gemini/generar-frase';
 
 const borrarUltimaParaula = () => {
   bufferParaules.value.pop();
