@@ -24,7 +24,8 @@
       <p>{{ compteMostres }} / {{ maxMostres }} mostres capturades</p>
     </div>
 
-    <div v-else-if="estaComprimint" class="recording">
+    <div v-else-if="estaComprimint" class="recording spinner-mini">
+      <LoadingSpinner />
       <h3>Processant dades...</h3>
       <p>Espera un moment, si us plau 📦</p>
     </div>
@@ -33,6 +34,7 @@
 
 <script setup>
 import { ref } from 'vue';
+import LoadingSpinner from './LoadingSpinner.vue';
 
 // AÑADIMOS LA VARIABLE 'usantIAv2'
 const props = defineProps({
@@ -310,6 +312,11 @@ const aturarCaptura = async () => {
 
 @keyframes parpelleig {
   50% { opacity: 0.5; }
+}
+
+.spinner-mini :deep(.wheel-and-hamster) {
+  font-size: 8px; /* Fem el hàmster més petit pel panell lateral */
+  margin: 0 auto 10px auto;
 }
 </style>
 

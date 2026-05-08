@@ -2,6 +2,12 @@
   <div class="camera-container">
     <video ref="videoRef" autoplay muted playsinline class="fullscreen-video" :class="{ espejo: facingMode === 'user' }"></video>
     <DrawSkeleton class="skeleton-overlay" v-if="mostrarEsquelet" :handsData="manosDetectadas" :esFrontal="facingMode === 'user'" />
+    
+    <!-- Overlay de càrrega de la IA -->
+    <div v-if="carregant" class="loading-overlay">
+      <LoadingSpinner />
+      <p>Configurant la Intel·ligència Artificial...</p>
+    </div>
 
     <!-- Logo top-left -->
     <div class="top-logo">
@@ -95,6 +101,7 @@ import { GestureService as GestureServiceOriginal } from '../services/GestureSer
 import { GestureService as GestureServiceV2 } from '../services/gestureservices2';
 import DrawSkeleton from '../components/DrawSkeleton.vue';
 import DatasetCreator from '@/components/DatasetCreator.vue';
+import LoadingSpinner from '../components/LoadingSpinner.vue';
 
 const router = useRouter();
 const videoRef = ref(null);
@@ -439,4 +446,17 @@ onBeforeUnmount(() => {
   color: #fff; background: rgba(220,38,38,0.85); backdrop-filter: blur(8px);
   padding: 20px 30px; border-radius: 12px; text-align: center; z-index: 30;
 }
+
+/* ── LOADING OVERLAY ── */
+.loading-overlay {
+  position: absolute; inset: 0; z-index: 100;
+  background: rgba(0,0,0,0.85); backdrop-filter: blur(20px);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  color: #fff; text-align: center;
+}
+.loading-overlay p {
+  margin-top: 24px; font-size: 1.2rem; font-weight: 600; color: #00BFFF;
+  letter-spacing: 1px; animation: pulse-text 2s infinite;
+}
+@keyframes pulse-text { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
 </style>

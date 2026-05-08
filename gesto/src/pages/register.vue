@@ -40,7 +40,11 @@
             <input type="password" id="confirmPassword" v-model="form.confirmPassword" required placeholder="••••••••">
           </div>
 
-          <button type="submit" class="btn-primary full-width">REGISTRAR-SE</button>
+          <div v-if="loading" class="spinner-container">
+            <LoadingSpinner />
+            <p>Creant compte...</p>
+          </div>
+          <button v-else type="submit" class="btn-primary full-width">REGISTRAR-SE</button>
         </form>
 
         <p class="auth-footer">
@@ -54,10 +58,14 @@
 <script>
 import AOS from 'aos';
 import 'aos/dist/aos.css';
+import LoadingSpinner from '../components/LoadingSpinner.vue';
 import Swal from 'sweetalert2';
 
 export default {
   name: 'RegisterPage',
+  components: {
+    LoadingSpinner
+  },
   data() {
     return {
       form: {
@@ -65,7 +73,8 @@ export default {
         email: '',
         password: '',
         confirmPassword: ''
-      }
+      },
+      loading: false
     }
   },
   mounted() {
@@ -89,6 +98,8 @@ export default {
         });
         return;
       }
+
+      this.loading = true;
 
       try {
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
@@ -138,6 +149,8 @@ export default {
           color: '#fff',
           confirmButtonColor: '#00BFFF'
         });
+      } finally {
+        this.loading = false;
       }
     }
   }
@@ -297,5 +310,19 @@ input:focus {
 
 .auth-footer a:hover {
   text-decoration: underline;
+}
+
+.spinner-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+}
+.spinner-container p {
+  color: #00BFFF;
+  margin-top: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
 }
 </style>
