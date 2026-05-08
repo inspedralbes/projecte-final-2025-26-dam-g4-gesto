@@ -35,8 +35,12 @@
             {{ errorMsg }}
           </div>
 
-          <button type="submit" class="btn-primary full-width" :disabled="loading">
-            {{ loading ? 'INICIANT SESSIÓ...' : 'INICIAR SESSIÓ' }}
+          <div v-if="loading" class="spinner-container">
+            <LoadingSpinner />
+            <p>Iniciant sessió...</p>
+          </div>
+          <button v-else type="submit" class="btn-primary full-width">
+            INICIAR SESSIÓ
           </button>
         </form>
 
@@ -51,9 +55,13 @@
 <script>
 import AOS from 'aos';
 import 'aos/dist/aos.css';
+import LoadingSpinner from '../components/LoadingSpinner.vue';
 
 export default {
   name: 'LoginPage',
+  components: {
+    LoadingSpinner
+  },
   data() {
     return {
       form: {
@@ -282,5 +290,19 @@ input:focus {
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
+}
+
+.spinner-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+}
+.spinner-container p {
+  color: #00BFFF;
+  margin-top: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
 }
 </style>
