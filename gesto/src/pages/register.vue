@@ -1,5 +1,11 @@
 <template>
   <div class="gesto-app">
+    <!-- Fons animat amb blobs -->
+    <div class="bg-blobs">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+    </div>
+
     <div class="container">
       <nav>
         <div class="logo" @click="$router.push('/')">
@@ -162,10 +168,42 @@ export default {
 
 .gesto-app {
   font-family: 'Inter', sans-serif;
-  background-color: #121212; 
+  background-color: #0a0a0a; 
   color: #E0E0E0; 
   min-height: 100vh;
   width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+/* FONS AMB BLOBS */
+.bg-blobs {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.blob {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(0, 191, 255, 0.12) 0%, rgba(0, 191, 255, 0) 70%);
+  border-radius: 50%;
+  filter: blur(80px);
+  animation: move-blobs 25s infinite alternate ease-in-out;
+}
+
+.blob-1 { top: -10%; left: -10%; }
+.blob-2 { bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(124, 58, 237, 0.1) 0%, rgba(124, 58, 237, 0) 70%); animation-delay: -5s; }
+
+@keyframes move-blobs {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(100px, 100px) scale(1.1); }
 }
 
 * { box-sizing: border-box; }
@@ -174,6 +212,8 @@ export default {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 20px;
+  position: relative;
+  z-index: 1;
 }
 
 nav {
@@ -211,22 +251,29 @@ nav {
 .nav-links button:hover { color: #fff; }
 
 .auth-container {
-  min-height: calc(100vh - 80px); /* Resta el header */
+  min-height: calc(100vh - 80px); 
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 40px 20px;
-  background: radial-gradient(circle at center, #1e1e1e 0%, #121212 70%);
+  position: relative;
+  z-index: 1;
 }
 
 .auth-box {
-  background-color: #1a1a1a;
-  padding: 40px;
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  padding: 50px 40px;
+  border-radius: 24px;
   width: 100%;
   max-width: 480px;
-  border: 1px solid #333;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+  transition: transform 0.3s ease;
+}
+.auth-box:hover {
+  transform: translateY(-5px);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 h2 {
@@ -255,39 +302,41 @@ label {
 
 input {
   width: 100%;
-  padding: 12px;
-  background-color: #252525;
-  border: 1px solid #333;
-  border-radius: 4px;
+  padding: 14px 18px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
   color: #fff;
   font-size: 1rem;
-  transition: border-color 0.3s;
+  transition: all 0.3s ease;
 }
 
 input:focus {
   outline: none;
   border-color: #00BFFF;
+  background-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 15px rgba(0, 191, 255, 0.15);
 }
 
 .btn-primary {
-  background-color: #00BFFF;
+  background: linear-gradient(135deg, #00BFFF 0%, #0080FF 100%);
   color: #000;
-  padding: 14px 20px;
+  padding: 16px 20px;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 800;
   border: none;
-  border-radius: 4px;
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 0 10px rgba(0, 191, 255, 0.2);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 10px 20px rgba(0, 191, 255, 0.2);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
 }
 
 .btn-primary:hover {
-  background-color: #33CFFF;
-  box-shadow: 0 0 20px rgba(0, 191, 255, 0.4);
-  transform: translateY(-2px);
+  background: linear-gradient(135deg, #33CFFF 0%, #00BFFF 100%);
+  box-shadow: 0 15px 30px rgba(0, 191, 255, 0.4);
+  transform: translateY(-3px);
 }
 
 .full-width {
