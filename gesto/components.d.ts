@@ -16,6 +16,7 @@ declare module 'vue' {
     DrawSkeleton: typeof import('./src/components/DrawSkeleton.vue')['default']
     GestoLanding: typeof import('./src/components/GestoLanding.vue')['default']
     HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
+    LoadingSpinner: typeof import('./src/components/LoadingSpinner.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }

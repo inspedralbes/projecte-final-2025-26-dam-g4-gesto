@@ -99,13 +99,41 @@
             </div>
           </div>
 
+          <!-- CONNECTOR 3→4: va cap a la dreta -->
+          <svg class="zz-connector" width="240" height="44" viewBox="0 0 240 44">
+            <path d="M 30,0 C 30,22 210,22 210,44" fill="none" stroke-width="5" stroke-dasharray="10 6"
+              :stroke="nivelDesbloqueado >= 4 ? '#00BFFF' : '#2a2a2a'"
+              :class="nivelDesbloqueado >= 4 ? 'path-animated' : ''" />
+          </svg>
+
+          <!-- NODE 4 — stagger dreta -->
+          <div class="zz-node-wrapper stagger-1">
+            <div v-if="nivelDesbloqueado === 4" class="current-label">ACTUAL</div>
+            <button
+              class="timeline-node"
+              :class="{ 'current': nivelDesbloqueado === 4, 'completed': 4 < nivelDesbloqueado }"
+              @click="intentarEntrarNivel(niveles[3])"
+            >
+              <svg v-if="4 < nivelDesbloqueado" viewBox="0 0 24 24" class="node-icon">
+                <path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <svg v-else-if="nivelDesbloqueado === 4" viewBox="0 0 24 24" class="node-icon">
+                <path d="M8 5v14l11-7z" fill="currentColor"/>
+              </svg>
+            </button>
+            <div class="node-info">
+              <h3>Jo tinc un amic</h3>
+              <span class="lesson-count">4 lliçons</span>
+            </div>
+          </div>
+
         </div>
       </div>
     </template>
 
     <template v-else>
       <div class="learning-header">
-        <button class="btn-close" @click="sortirDeLlico">✕</button>
+        <button class="btn-close" @click="sortirDeLlico">X</button>
         <div class="progress-bar-container">
           <div class="progress-bar-fill lesson-progress" :style="{ width: porcentajeLlico + '%' }"></div>
         </div>
@@ -129,7 +157,7 @@
               ></video>
               <!-- Placeholder si el video no existeix encara -->
               <div v-if="videoError" class="video-placeholder">
-                <span class="video-placeholder-icon">🤚</span>
+                <span class="video-placeholder-icon"></span>
                 <p>{{ llicoActualData.titol }}</p>
                 <small>Video pròximament</small>
               </div>
@@ -176,8 +204,8 @@
           <div class="auto-detect-indicator" :class="{'success': tipoFeedback === 'success'}">
             {{ 
               tipoFeedback === 'success' 
-              ? (pasoActual === totalPasosLlico ? '🎉 COMPLETANT...' : '✔ GEST CORRECTE! AVANÇANT...') 
-              : '🔴 ESPERANT EL GEST A LA CÀMERA...' 
+              ? (pasoActual === totalPasosLlico ? 'COMPLETANT...' : 'GEST CORRECTE! AVANÇANT...') 
+              : 'ESPERANT EL GEST A LA CÀMERA...' 
             }}
           </div>
         </div>
@@ -185,12 +213,12 @@
 
       <div v-if="mostrarModalSuperat" class="modal-overlay">
         <div class="modal-content">
-          <div class="modal-icon">🏆</div>
+          <div class="modal-icon"></div>
           <h2>Enhorabona!</h2>
           <p>Has completat amb èxit el <strong>{{ niveles[nivelActivo - 1].titol }}</strong>.</p>
           
           <div class="unlocked-badge">
-            🔓 Camí actualitzat!
+            Camí actualitzat!
           </div>
 
           <button class="btn-primary" @click="tancarModalIAnarAlMapa">
@@ -274,6 +302,18 @@ export default {
           llicons: [
             { titol: "Hola", instruccio: "Saluda movent la mà de costat a costat.", gestEsperat: "Hola", arxiu: "/videos/hola.mp4", esVideo: true },
             { titol: "Adeu", instruccio: "Tanca i obre la mà per dir Adeu.", gestEsperat: "Adeu", arxiu: "/videos/adeu.mp4", esVideo: true }
+          ]
+        },
+        {
+          id: 4, 
+          categoria: "Nivell 4", 
+          descripcio: "Frases Bàsiques", 
+          titol: "Jo tinc un amic",
+          llicons: [
+            { titol: "Jo", instruccio: "Assenyala't a tu mateix amb el dit índex.", gestEsperat: "Jo", arxiu: "/videos/jo.mp4", esVideo: true },
+            { titol: "Tinc", instruccio: "Posa la mà plana sobre el pit.", gestEsperat: "Tinc", arxiu: "/videos/tinc.mp4", esVideo: true },
+            { titol: "Amic", instruccio: "Uneix els dits índexs com si fessin un ganxo.", gestEsperat: "Amic", arxiu: "/videos/amic.mp4", esVideo: true },
+            { titol: "Frase completa", instruccio: "Fes els tres gestos seguits: Jo, Tinc, Amic.", gestEsperat: "Jo tinc un amic", arxiu: "/videos/jo_tinc_amic.mp4", esVideo: true }
           ]
         }
       ]
@@ -361,7 +401,7 @@ export default {
       } catch (error) {
         console.error("Error al acceder a la cámara:", error);
         this.tipoFeedback = 'error';
-        this.mensajeFeedback = "❌ No s'ha pogut accedir a la càmera. Assegura't de donar permisos.";
+        this.mensajeFeedback = "No s'ha pogut accedir a la càmera. Assegura't de donar permisos.";
       }
     },
     predictWebcam() {
@@ -448,7 +488,7 @@ export default {
         this.tipoFeedback = 'success';
 
         if (this.pasoActual === this.totalPasosLlico) {
-            this.mensajeFeedback = `🎉 Genial! Processant recompensa...`;
+            this.mensajeFeedback = `Genial! Processant recompensa...`;
             
             if (this.nivelActivo === this.nivelDesbloqueado && this.nivelDesbloqueado <= this.niveles.length) {
                 this.nivelDesbloqueado++;
@@ -461,7 +501,7 @@ export default {
             }, 1000);
 
         } else {
-            this.mensajeFeedback = `✅ Correcte! Has fet el gest de "${this.llicoActualData.gestEsperat}".`;
+            this.mensajeFeedback = `Correcte! Has fet el gest de "${this.llicoActualData.gestEsperat}".`;
             this.feedbackTimeout = setTimeout(() => {
                 this.avançarLlicoAutomàtic();
             }, 2000);
