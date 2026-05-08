@@ -11,7 +11,7 @@
         <div class="nav-links">
           <template v-if="user">
             <span class="user-greeting">Hola, {{ user.name }}</span>
-            <button @click="simularNav('logout')" class="btn-logout">TANCAR SESSIÓ</button>
+            <button @click="logout" class="btn-logout">TANCAR SESSIÓ</button>
           </template>
           <template v-else>
             <button @click="simularNav('login')">INICIAR SESSIÓ</button>
@@ -194,6 +194,7 @@ export default {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       this.user = null;
+      this.paginaActual = 'home';
       this.$router.push('/');
     },
     simularNav(desti) {
