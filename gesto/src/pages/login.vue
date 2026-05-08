@@ -154,14 +154,14 @@ export default {
   position: absolute;
   width: 600px;
   height: 600px;
-  background: radial-gradient(circle, rgba(0, 191, 255, 0.12) 0%, rgba(0, 191, 255, 0) 70%);
+  background: radial-gradient(circle, rgba(0, 191, 255, 0.4) 0%, rgba(0, 191, 255, 0) 70%);
   border-radius: 50%;
-  filter: blur(80px);
+  filter: blur(60px);
   animation: move-blobs 25s infinite alternate ease-in-out;
 }
 
-.blob-1 { top: -10%; left: -10%; }
-.blob-2 { bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(124, 58, 237, 0.1) 0%, rgba(124, 58, 237, 0) 70%); animation-delay: -5s; }
+.blob-1 { top: -20%; left: -10%; background: radial-gradient(circle, rgba(0, 191, 255, 0.5) 0%, rgba(0, 191, 255, 0) 70%); }
+.blob-2 { bottom: -20%; right: -10%; background: radial-gradient(circle, rgba(124, 58, 237, 0.4) 0%, rgba(124, 58, 237, 0) 70%); animation-delay: -5s; }
 
 @keyframes move-blobs {
   0% { transform: translate(0, 0) scale(1); }
@@ -175,7 +175,7 @@ export default {
   margin: 0 auto;
   padding: 0 20px;
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 nav {
@@ -219,7 +219,7 @@ nav {
   align-items: center;
   padding: 40px 20px;
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .auth-box {
