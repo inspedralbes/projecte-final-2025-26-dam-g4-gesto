@@ -245,19 +245,20 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 0;
+  z-index: 1;
   overflow: hidden;
   pointer-events: none;
 }
 
 .blob {
   position: absolute;
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, rgba(0, 191, 255, 0.4) 0%, rgba(0, 191, 255, 0) 70%);
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(circle, rgba(0, 191, 255, 0.6) 0%, rgba(0, 191, 255, 0) 70%);
   border-radius: 50%;
-  filter: blur(60px);
+  filter: blur(80px);
   animation: move-blobs 20s infinite alternate ease-in-out;
+  opacity: 0.8;
 }
 
 .blob-1 { top: -20%; left: -10%; background: radial-gradient(circle, rgba(0, 191, 255, 0.5) 0%, rgba(0, 191, 255, 0) 70%); }
@@ -284,7 +285,7 @@ export default {
 
 .gesto-app > div:not(.bg-blobs) {
   position: relative;
-  z-index: 2;
+  z-index: 10;
 }
 
 * { box-sizing: border-box; }
