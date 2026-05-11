@@ -36,23 +36,29 @@ Regles estrictes:
 - Respon ÚNICAMENT amb la frase final, sense explicacions, sense cometes, sense punts suspensius.`;
 
     try {
-        // Llamada a la API local de Ollama (a través de la red de Docker)
-        const response = await fetch(
-            `http://ollama:11434/api/generate`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    model: process.env.OLLAMA_MODEL || 'gemma:2b', // Usa gemma:2b por defecto por las limitaciones de RAM
-                    prompt: prompt,
-                    stream: false,
-                    options: {
-                        temperature: 0.5,
-                        num_predict: 200
-                    }
-                })
-            }
-        );
+        let response;
+        const options = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: process.env.OLLAMA_MODEL || 'gemma:2b',
+                prompt: prompt,
+                stream: false,
+                options: {
+                    temperature: 0.5,
+                    num_predict: 200
+                }
+            })
+        };
+
+        try {
+            // Intentar primero con el nombre del contenedor Docker
+            response = await fetch(`http://ollama:11434/api/generate`, options);
+        } catch (err) {
+            // Si falla (ej. ejecutando el backend fuera de Docker), intentar en localhost
+            console.warn("No s'ha pogut connectar a 'http://ollama:11434', provant a 'localhost'...");
+            response = await fetch(`http://127.0.0.1:11434/api/generate`, options);
+        }
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));

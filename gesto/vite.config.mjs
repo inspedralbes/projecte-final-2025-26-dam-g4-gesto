@@ -68,6 +68,11 @@ export default defineConfig({
   server: {
     allowedHosts: ['gestoo.dam.inspedralbes.cat'],
     port: 3000,
+    hmr: {
+      host: 'gestoo.dam.inspedralbes.cat',
+      protocol: 'wss',
+      clientPort: 443
+    },
     proxy: {
       // Redirigeix totes les crides /api al backend (port 5000)
       '/api': {
