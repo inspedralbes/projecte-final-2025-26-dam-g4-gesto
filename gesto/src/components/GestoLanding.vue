@@ -245,24 +245,25 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 0;
+  z-index: 1;
   overflow: hidden;
   pointer-events: none;
 }
 
 .blob {
   position: absolute;
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, rgba(0, 191, 255, 0.15) 0%, rgba(0, 191, 255, 0) 70%);
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(circle, rgba(0, 191, 255, 0.6) 0%, rgba(0, 191, 255, 0) 70%);
   border-radius: 50%;
   filter: blur(80px);
   animation: move-blobs 20s infinite alternate ease-in-out;
+  opacity: 0.8;
 }
 
-.blob-1 { top: -10%; left: -10%; background: radial-gradient(circle, rgba(0, 191, 255, 0.2) 0%, rgba(0, 191, 255, 0) 70%); }
-.blob-2 { bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(124, 58, 237, 0.15) 0%, rgba(124, 58, 237, 0) 70%); animation-delay: -5s; }
-.blob-3 { top: 40%; left: 30%; background: radial-gradient(circle, rgba(0, 191, 255, 0.1) 0%, rgba(0, 191, 255, 0) 70%); animation-delay: -10s; }
+.blob-1 { top: -20%; left: -10%; background: radial-gradient(circle, rgba(0, 191, 255, 0.5) 0%, rgba(0, 191, 255, 0) 70%); }
+.blob-2 { bottom: -20%; right: -10%; background: radial-gradient(circle, rgba(124, 58, 237, 0.4) 0%, rgba(124, 58, 237, 0) 70%); animation-delay: -5s; }
+.blob-3 { top: 30%; left: 20%; background: radial-gradient(circle, rgba(0, 191, 255, 0.3) 0%, rgba(0, 191, 255, 0) 70%); animation-delay: -10s; }
 
 @keyframes move-blobs {
   0% { transform: translate(0, 0) scale(1); }
@@ -284,7 +285,7 @@ export default {
 
 .gesto-app > div:not(.bg-blobs) {
   position: relative;
-  z-index: 1;
+  z-index: 10;
 }
 
 * { box-sizing: border-box; }
@@ -300,7 +301,7 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 .btn-logout { background: none; border: 1px solid #333; color: #A0A0A0; font-weight: 600; cursor: pointer; padding: 8px 16px; border-radius: 4px; font-size: 0.9rem; transition: all 0.3s; }
 .btn-logout:hover { border-color: #ffca28; color: #ffca28; }
 
-.hero { height: 85vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; position: relative; background: radial-gradient(circle at center, #1e1e1e 0%, #121212 70%); }
+.hero { height: 85vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; position: relative; background: transparent; }
 .hero h1 { 
   font-size: 4rem; 
   font-weight: 800; 
@@ -340,7 +341,7 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 .btn-outline { border: 1px solid #333; background: transparent; color: #fff; padding: 12px 24px; border-radius: 4px; cursor: pointer; font-weight: 600; margin-top: 20px; font-size: 0.9rem; }
 .btn-outline:hover { border-color: #fff; }
 
-.info-section { padding: 100px 0; background-color: #0f0f0f; }
+.info-section { padding: 100px 0; background-color: transparent; }
 .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; margin-bottom: 120px; }
 
 .info-content h2 { font-size: 2.5rem; margin-bottom: 20px; color: #fff; font-weight: 800; }
