@@ -72,7 +72,7 @@ Regles estrictes:
 
     } catch (error) {
         console.error('Error cridant a Ollama:', error);
-        res.status(500).json({ error: 'Error intern cridant a Ollama API. ¿Està el servei d\\'Ollama en marxa?' });
+        res.status(500).json({ error: "Error intern cridant a Ollama API. ¿Està el servei d'Ollama en marxa?" });
     }
 });
 
