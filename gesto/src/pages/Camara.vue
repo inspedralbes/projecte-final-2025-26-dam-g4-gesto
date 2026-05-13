@@ -43,10 +43,18 @@
       <transition name="fade-slide">
         <div v-if="fraseIA" class="ia-result">
           <div class="ia-header">
-            <span class="ia-badge">
-              <svg
             <span class="ia-badge" :class="{ 'ia-badge-local': !fraseIAFontIA }">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              <svg
+                fill="none"
+                height="14"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                style="margin-right:4px;"
+                viewBox="0 0 24 24"
+                width="14"
+              ><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
               {{ fraseIAFontIA ? 'Gesto IA' : 'Traducció directa' }}
             </span>
             <div class="ia-actions">
@@ -164,9 +172,9 @@
 
   // Sistema de frases
   const bufferParaules = ref([])
-  const fraseIA = ref('');
-  const fraseIAFontIA = ref(true);
-  const carregantIA = ref(false);
+  const fraseIA = ref('')
+  const fraseIAFontIA = ref(true)
+  const carregantIA = ref(false)
   const ultimaParaulaAfegida = ref(null)
   const IA_API_URL = '/api/ia/generar-frase'
 
@@ -191,10 +199,10 @@
     fraseIA.value = ''
     try {
       const res = await fetch(IA_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ signes: bufferParaules.value }) })
-      const data = await res.json();
-      fraseIA.value = data.frase || '⚠️ ' + (data.error || 'Error generant la frase');
-      fraseIAFontIA.value = data.fontIA !== false;
-      if (data.frase) speak(data.frase);
+      const data = await res.json()
+      fraseIA.value = data.frase || '⚠️ ' + (data.error || 'Error generant la frase')
+      fraseIAFontIA.value = data.fontIA !== false
+      if (data.frase) speak(data.frase)
     } catch {
       fraseIA.value = '⚠️ Error de connexió amb el servidor'
     } finally {
@@ -394,11 +402,11 @@
   to   { box-shadow: 0 6px 36px rgba(0,255,180,0.4); border-color: rgba(0,255,180,0.5); }
 }
 .ia-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-.ia-badge { 
+.ia-badge {
   display: flex; align-items: center;
-  font-size: 0.8rem; font-weight: 700; color: #00ffb4; 
-  background: rgba(0,255,180,0.1); padding: 4px 12px; 
-  border-radius: 20px; border: 1px solid rgba(0,255,180,0.3); 
+  font-size: 0.8rem; font-weight: 700; color: #00ffb4;
+  background: rgba(0,255,180,0.1); padding: 4px 12px;
+  border-radius: 20px; border: 1px solid rgba(0,255,180,0.3);
 }
 .ia-badge-local {
   color: #94a3b8;
