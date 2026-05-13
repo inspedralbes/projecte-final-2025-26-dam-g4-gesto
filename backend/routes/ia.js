@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 /**
- * POST /api/gemini/generar-frase
+ * POST /api/ia/generar-frase
  * Body: { signes: ["Hola", "Un", "Dos"] }
  * Retorna: { frase: "Hola! Som un o dos?" }
  */

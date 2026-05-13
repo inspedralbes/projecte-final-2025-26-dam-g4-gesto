@@ -34,15 +34,18 @@
     <!-- Zona subtítols / frases -->
     <div class="subtitles-zone">
       <transition name="fade-slide">
-        <div class="gemini-result" v-if="fraseGemini">
-          <div class="gemini-header">
-            <span class="gemini-badge">✨ Gemini</span>
-            <div class="gemini-actions">
-              <button @click="speak(fraseGemini)" title="Llegir">🔊</button>
-              <button @click="fraseGemini = ''" title="Tancar">✕</button>
+        <div class="ia-result" v-if="fraseIA">
+          <div class="ia-header">
+            <span class="ia-badge">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              Gesto IA
+            </span>
+            <div class="ia-actions">
+              <button @click="speak(fraseIA)" title="Llegir">🔊</button>
+              <button @click="fraseIA = ''" title="Tancar">✕</button>
             </div>
           </div>
-          <p class="gemini-text">{{ fraseGemini }}</p>
+          <p class="ia-text">{{ fraseIA }}</p>
         </div>
       </transition>
 
@@ -55,15 +58,21 @@
           <transition-group name="word-pop" tag="div" class="words-inner">
             <span v-for="(p, i) in bufferParaules" :key="i + p" class="word-chip">{{ p }}</span>
           </transition-group>
-          <span v-if="carregantGemini" class="loading-dots"><span>.</span><span>.</span><span>.</span></span>
+          <span v-if="carregantIA" class="loading-dots"><span>.</span><span>.</span><span>.</span></span>
         </div>
         <div class="phrase-actions">
-          <button class="phrase-btn btn-delete" @click="borrarUltimaParaula" :disabled="bufferParaules.length === 0 || carregantGemini">⌫ Desfer</button>
-          <button class="phrase-btn btn-clear" @click="netejarBuffer" :disabled="bufferParaules.length === 0 || carregantGemini">✕ Netejar</button>
+          <button class="phrase-btn btn-delete" @click="borrarUltimaParaula" :disabled="bufferParaules.length === 0 || carregantIA">⌫ Desfer</button>
+          <button class="phrase-btn btn-clear" @click="netejarBuffer" :disabled="bufferParaules.length === 0 || carregantIA">✕ Netejar</button>
           <button class="phrase-btn btn-speak" @click="llegirBuffer" :disabled="bufferParaules.length === 0">🔊 Llegir</button>
-          <button class="phrase-btn btn-gemini" @click="generarFraseGemini" :disabled="bufferParaules.length === 0 || carregantGemini">
-            <span v-if="!carregantGemini">✨ Generar frase</span>
-            <span v-else>⏳ Generant...</span>
+          <button class="phrase-btn btn-ia" @click="generarFraseIA" :disabled="bufferParaules.length === 0 || carregantIA">
+            <span v-if="!carregantIA" class="btn-ia-content">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              Interpretar signes
+            </span>
+            <span v-else class="btn-ia-content">
+              <svg class="spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
+              Processant IA...
+            </span>
           </button>
         </div>
       </div>
@@ -119,10 +128,10 @@ const lastSpokenSigno = ref(null);
 
 // Sistema de frases
 const bufferParaules = ref([]);
-const fraseGemini = ref('');
-const carregantGemini = ref(false);
+const fraseIA = ref('');
+const carregantIA = ref(false);
 const ultimaParaulaAfegida = ref(null);
-const GEMINI_API_URL = '/api/gemini/generar-frase';
+const IA_API_URL = '/api/ia/generar-frase';
 
 const borrarUltimaParaula = () => {
   bufferParaules.value.pop();
@@ -131,7 +140,7 @@ const borrarUltimaParaula = () => {
 const netejarBuffer = () => {
   bufferParaules.value = [];
   ultimaParaulaAfegida.value = null;
-  fraseGemini.value = '';
+  fraseIA.value = '';
 };
 const llegirBuffer = () => {
   if (bufferParaules.value.length) {
@@ -139,19 +148,19 @@ const llegirBuffer = () => {
   }
 };
 
-const generarFraseGemini = async () => {
-  if (!bufferParaules.value.length || carregantGemini.value) return;
-  carregantGemini.value = true;
-  fraseGemini.value = '';
+const generarFraseIA = async () => {
+  if (!bufferParaules.value.length || carregantIA.value) return;
+  carregantIA.value = true;
+  fraseIA.value = '';
   try {
-    const res = await fetch(GEMINI_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ signes: bufferParaules.value }) });
+    const res = await fetch(IA_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ signes: bufferParaules.value }) });
     const data = await res.json();
-    fraseGemini.value = data.frase || '⚠️ ' + (data.error || 'Error generant la frase');
+    fraseIA.value = data.frase || '⚠️ ' + (data.error || 'Error generant la frase');
     if (data.frase) speak(data.frase);
   } catch (e) {
-    fraseGemini.value = '⚠️ Error de connexió amb el servidor';
+    fraseIA.value = '⚠️ Error de connexió amb el servidor';
   } finally {
-    carregantGemini.value = false;
+    carregantIA.value = false;
   }
 };
 
@@ -333,25 +342,38 @@ onBeforeUnmount(() => {
   display: flex; flex-direction: column; gap: 12px; align-items: stretch;
 }
 
-/* Resultat Gemini */
-.gemini-result {
-  background: linear-gradient(135deg, rgba(60,20,130,0.94), rgba(20,5,70,0.97));
-  border: 1px solid rgba(180,130,255,0.4);
-  border-radius: 18px; padding: 14px 18px;
+/* Resultat IA */
+.ia-result {
+  background: linear-gradient(135deg, rgba(10,40,60,0.95), rgba(5,15,25,0.98));
+  border: 1px solid rgba(0,191,255,0.4);
+  border-radius: 18px; padding: 16px 20px;
   backdrop-filter: blur(14px);
-  box-shadow: 0 4px 30px rgba(120,60,220,0.35);
-  animation: gemini-glow 2.5s ease-in-out infinite alternate;
+  box-shadow: 0 4px 30px rgba(0,191,255,0.25);
+  animation: ia-glow 3s ease-in-out infinite alternate;
 }
-@keyframes gemini-glow {
-  from { box-shadow: 0 4px 20px rgba(120,60,220,0.3); }
-  to   { box-shadow: 0 6px 36px rgba(160,100,255,0.6); }
+@keyframes ia-glow {
+  from { box-shadow: 0 4px 20px rgba(0,191,255,0.2); }
+  to   { box-shadow: 0 6px 36px rgba(0,255,180,0.4); border-color: rgba(0,255,180,0.5); }
 }
-.gemini-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.gemini-badge { font-size: 0.8rem; font-weight: 700; color: #c4b5fd; background: rgba(139,92,246,0.2); padding: 3px 10px; border-radius: 20px; border: 1px solid rgba(139,92,246,0.4); }
-.gemini-actions { display: flex; gap: 6px; }
-.gemini-actions button { background: rgba(255,255,255,0.1); border: none; color: #fff; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; font-size: 0.85rem; transition: background 0.2s; }
-.gemini-actions button:hover { background: rgba(255,255,255,0.25); }
-.gemini-text { margin: 0; color: #ede9fe; font-size: 1.2rem; font-weight: 600; line-height: 1.5; }
+.ia-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.ia-badge { 
+  display: flex; align-items: center;
+  font-size: 0.8rem; font-weight: 700; color: #00ffb4; 
+  background: rgba(0,255,180,0.1); padding: 4px 12px; 
+  border-radius: 20px; border: 1px solid rgba(0,255,180,0.3); 
+}
+.ia-actions { display: flex; gap: 8px; }
+.ia-actions button { 
+  background: rgba(255,255,255,0.1); border: none; color: #fff; 
+  border-radius: 50%; width: 32px; height: 32px; 
+  cursor: pointer; font-size: 0.9rem; transition: all 0.2s ease;
+  display: flex; align-items: center; justify-content: center;
+}
+.ia-actions button:hover { background: rgba(0,191,255,0.2); color: #00BFFF; transform: scale(1.1); }
+.ia-text { 
+  margin: 0; color: #e0f2fe; font-size: 1.3rem; 
+  font-weight: 600; line-height: 1.5; letter-spacing: 0.3px; 
+}
 
 /* Panel paraules */
 .words-panel {
@@ -393,12 +415,16 @@ onBeforeUnmount(() => {
 .btn-clear { background: rgba(100,100,120,0.7); color: #fff; }
 .btn-speak { background: rgba(34,197,94,0.8); color: #fff; }
 .btn-speak:not(:disabled):hover { box-shadow: 0 4px 14px rgba(34,197,94,0.5); }
-.btn-gemini {
-  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+.btn-ia {
+  background: linear-gradient(135deg, #0284c7, #0d9488);
   color: #fff; flex: 1; justify-content: center;
-  box-shadow: 0 2px 14px rgba(124,58,237,0.4);
+  box-shadow: 0 2px 14px rgba(2,132,199,0.4);
+  position: relative; overflow: hidden;
 }
-.btn-gemini:not(:disabled):hover { box-shadow: 0 4px 22px rgba(124,58,237,0.7); }
+.btn-ia:not(:disabled):hover { box-shadow: 0 4px 22px rgba(13,148,136,0.6); }
+.btn-ia-content { display: flex; align-items: center; justify-content: center; }
+.spinner { animation: spin 1.5s linear infinite; }
+@keyframes spin { 100% { transform: rotate(360deg); } }
 
 /* Hint buit */
 .buffer-hint {
