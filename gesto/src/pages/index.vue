@@ -3,5 +3,5 @@
 </template>
 
 <script setup>
-import GestoLanding from '@/components/GestoLanding.vue'
+  import GestoLanding from '@/components/GestoLanding.vue'
 </script>

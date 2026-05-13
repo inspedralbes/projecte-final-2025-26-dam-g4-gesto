@@ -1,13 +1,13 @@
+import { fileURLToPath, URL } from 'node:url'
+import Vue from '@vitejs/plugin-vue'
+import Fonts from 'unplugin-fonts/vite'
 // Plugins
 import Components from 'unplugin-vue-components/vite'
-import Vue from '@vitejs/plugin-vue'
-import Vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
-import Fonts from 'unplugin-fonts/vite'
 import VueRouter from 'unplugin-vue-router/vite'
 
 // Utilities
 import { defineConfig } from 'vite'
-import { fileURLToPath, URL } from 'node:url'
+import Vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
 
 export default defineConfig({
   plugins: [
@@ -71,19 +71,19 @@ export default defineConfig({
     hmr: {
       host: 'gestoo.dam.inspedralbes.cat',
       protocol: 'wss',
-      clientPort: 443
+      clientPort: 443,
     },
     proxy: {
       // Redirigeix totes les crides /api al backend (port 5000)
       '/api': {
         target: 'http://localhost:5000',
         changeOrigin: true,
-      }
+      },
     },
     watch: {
       // Ignorem carpetes pesades que no canvien mai (com el venv de Python)
       // per evitar l'error ENOSPC (límit de watchers del sistema)
-      ignored: ['**/public/entrenament_signes/venv/**']
-    }
+      ignored: ['**/public/entrenament_signes/venv/**'],
+    },
   },
 })

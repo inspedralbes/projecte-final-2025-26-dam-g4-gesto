@@ -1,65 +1,65 @@
 <template>
-  <canvas ref="canvasRef" class="skeleton-canvas" :class="{ 'espejo': esFrontal }"></canvas>
+  <canvas ref="canvasRef" class="skeleton-canvas" :class="{ 'espejo': esFrontal }" />
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
+  import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
-// Recibimos las manos desde tu cámara principal y si la cámara es frontal
-const props = defineProps({
-  handsData: {
-    type: Array,
-    default: () => []
-  },
-  esFrontal: {
-    type: Boolean,
-    default: false
+  // Recibimos las manos desde tu cámara principal y si la cámara es frontal
+  const props = defineProps({
+    handsData: {
+      type: Array,
+      default: () => [],
+    },
+    esFrontal: {
+      type: Boolean,
+      default: false,
+    },
+  })
+
+  const canvasRef = ref(null)
+
+  // Ajustar el tamaño del canvas al tamaño de su contenedor padre
+  function resizeCanvas () {
+    if (canvasRef.value && canvasRef.value.parentElement) {
+      const parent = canvasRef.value.parentElement
+      canvasRef.value.width = parent.clientWidth
+      canvasRef.value.height = parent.clientHeight
+    }
   }
-});
 
-const canvasRef = ref(null);
+  onMounted(() => {
+    resizeCanvas()
+    window.addEventListener('resize', resizeCanvas)
+  })
 
-// Ajustar el tamaño del canvas al tamaño de su contenedor padre
-const resizeCanvas = () => {
-  if (canvasRef.value && canvasRef.value.parentElement) {
-    const parent = canvasRef.value.parentElement;
-    canvasRef.value.width = parent.clientWidth;
-    canvasRef.value.height = parent.clientHeight;
-  }
-};
+  onBeforeUnmount(() => {
+    window.removeEventListener('resize', resizeCanvas)
+  })
 
-onMounted(() => {
-  resizeCanvas();
-  window.addEventListener('resize', resizeCanvas);
-});
+  // Cada vez que la IA envíe nuevas manos, dibujamos
+  watch(() => props.handsData, newHands => {
+    if (!canvasRef.value) return
 
-onBeforeUnmount(() => {
-  window.removeEventListener('resize', resizeCanvas);
-});
+    const ctx = canvasRef.value.getContext('2d')
+    const w = canvasRef.value.width
+    const h = canvasRef.value.height
 
-// Cada vez que la IA envíe nuevas manos, dibujamos
-watch(() => props.handsData, (newHands) => {
-  if (!canvasRef.value) return;
-  
-  const ctx = canvasRef.value.getContext('2d');
-  const w = canvasRef.value.width;
-  const h = canvasRef.value.height;
+    // Limpiamos el dibujo anterior (esto lo hace transparente)
+    ctx.clearRect(0, 0, w, h)
 
-  // Limpiamos el dibujo anterior (esto lo hace transparente)
-  ctx.clearRect(0, 0, w, h);
+    // Color de los puntos
+    ctx.fillStyle = '#00FF00'
 
-  // Color de los puntos
-  ctx.fillStyle = "#00FF00"; 
-
-  newHands.forEach(mano => {
-    mano.forEach(point => {
-      ctx.beginPath();
-      // Multiplicamos por el ancho y alto del canvas (que ahora se ajusta al padre)
-      ctx.arc(point.x * w, point.y * h, 4, 0, 2 * Math.PI);
-      ctx.fill();
-    });
-  });
-}, { deep: true });
+    for (const mano of newHands) {
+      for (const point of mano) {
+        ctx.beginPath()
+        // Multiplicamos por el ancho y alto del canvas (que ahora se ajusta al padre)
+        ctx.arc(point.x * w, point.y * h, 4, 0, 2 * Math.PI)
+        ctx.fill()
+      }
+    }
+  }, { deep: true })
 </script>
 
 <style scoped>

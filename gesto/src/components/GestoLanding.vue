@@ -2,9 +2,9 @@
   <div class="gesto-app">
     <!-- Fons animat amb blobs -->
     <div class="bg-blobs">
-      <div class="blob blob-1"></div>
-      <div class="blob blob-2"></div>
-      <div class="blob blob-3"></div>
+      <div class="blob blob-1" />
+      <div class="blob blob-2" />
+      <div class="blob blob-3" />
     </div>
 
     <div class="container">
@@ -18,7 +18,7 @@
         <div class="nav-links">
           <template v-if="user">
             <span class="user-greeting">Hola, {{ user.name }}</span>
-            <button @click="logout" class="btn-logout">TANCAR SESSIÓ</button>
+            <button class="btn-logout" @click="logout">TANCAR SESSIÓ</button>
           </template>
           <template v-else>
             <button @click="simularNav('login')">INICIAR SESSIÓ</button>
@@ -27,14 +27,14 @@
       </nav>
     </div>
 
-    <transition name="fade" mode="out-in">
-      
+    <transition mode="out-in" name="fade">
+
       <div v-if="paginaActual === 'home'" key="home">
         <header class="hero">
           <div class="container">
             <h1 data-aos="fade-up" data-aos-duration="1000">Trenca les barreres<br>del so.</h1>
             <p data-aos="fade-up" data-aos-delay="200">Traducció de Llengua de Signes a veu i text en temps real mitjançant Intel·ligència Artificial. El teu intèrpret de butxaca.</p>
-            
+
             <div data-aos="zoom-in" data-aos-delay="400">
               <button class="btn-primary" @click="simularNav('traductor')">
                 COMENÇAR A TRADUIR
@@ -43,8 +43,15 @@
 
             <br>
             <div class="scroll-indicator floating-arrow">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                <path d="M7 13l5 5 5-5M7 6l5 5 5-5"/>
+              <svg
+                fill="none"
+                height="24"
+                stroke="white"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+              >
+                <path d="M7 13l5 5 5-5M7 6l5 5 5-5" />
               </svg>
             </div>
           </div>
@@ -52,13 +59,13 @@
 
         <section class="info-section">
           <div class="container">
-            
+
             <div class="info-grid">
               <div class="visual-placeholder" data-aos="fade-right">
-                <img 
-                  src="https://www.magisnet.com/wp-content/uploads/2023/09/signos.jpg" 
-                  alt="Aprendre llengua de signes" 
+                <img
+                  alt="Aprendre llengua de signes"
                   class="feature-image"
+                  src="https://www.magisnet.com/wp-content/uploads/2023/09/signos.jpg"
                 >
               </div>
               <div class="info-content" data-aos="fade-left">
@@ -74,20 +81,20 @@
                 <p>En hospitals o situacions d'emergència, la manca d'intèrprets crea murs invisibles. GESTO elimina l'escletxa comunicativa quan més ho necessites.</p>
               </div>
               <div class="visual-placeholder" data-aos="fade-left">
-                <img 
-                  src="https://www.assersum.com/content/images/2024/09/Sin-t-tulo-2.png" 
-                  alt="Barreras de comunicación" 
+                <img
+                  alt="Barreras de comunicación"
                   class="feature-image"
+                  src="https://www.assersum.com/content/images/2024/09/Sin-t-tulo-2.png"
                 >
               </div>
             </div>
 
             <div class="info-grid">
               <div class="visual-placeholder" data-aos="fade-right">
-                 <img 
-                  src="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fepgmhwtajlp6xbx5ckvm.png" 
-                  alt="Intel·ligència Artificial i Algoritmes" 
+                <img
+                  alt="Intel·ligència Artificial i Algoritmes"
                   class="feature-image"
+                  src="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fepgmhwtajlp6xbx5ckvm.png"
                 >
               </div>
               <div class="info-content" data-aos="fade-left">
@@ -111,30 +118,30 @@
               </div>
             </template>
             <template v-else>
-               <p class="footer-cta">Preparat per comunicar-te?</p>
-               <div class="footer-links">
-                  <a href="#" @click.prevent="simularNav('traductor')">COMENÇAR A TRADUIR</a>
-               </div>
+              <p class="footer-cta">Preparat per comunicar-te?</p>
+              <div class="footer-links">
+                <a href="#" @click.prevent="simularNav('traductor')">COMENÇAR A TRADUIR</a>
+              </div>
             </template>
-            </div>
+          </div>
         </footer>
       </div>
 
       <div v-else-if="paginaActual === 'com-funciona'" key="com-funciona" class="how-it-works-view">
         <div class="container">
           <button class="btn-back" @click="simularNav('home')">← Tornar</button>
-          
+
           <header class="section-header" data-aos="fade-down">
             <h1>Com funciona <span class="text-highlight">GESTO</span>?</h1>
             <p class="subtitle">Tecnologia avançada, ús senzill.</p>
           </header>
 
           <div class="gif-container" data-aos="zoom-in">
-             <img 
-               src="https://raw.githubusercontent.com/gist/TheJLifeX/74958cc59db477a91837244ff598ef4a/raw/088f3995801c58f79f0a79086f1cd4cc176396d3/00-hand-gesture-recognition.gif" 
-               alt="GIF demostración" 
-               class="demo-gif"
-             >
+            <img
+              alt="GIF demostración"
+              class="demo-gif"
+              src="https://raw.githubusercontent.com/gist/TheJLifeX/74958cc59db477a91837244ff598ef4a/raw/088f3995801c58f79f0a79086f1cd4cc176396d3/00-hand-gesture-recognition.gif"
+            >
           </div>
 
           <div class="steps-explanation" data-aos="fade-up">
@@ -162,67 +169,81 @@
 </template>
 
 <script>
-import AOS from 'aos';
-import 'aos/dist/aos.css';
+  import AOS from 'aos'
+  import 'aos/dist/aos.css'
 
-export default {
-  name: 'GestoLanding',
-  data() {
-    return {
-      paginaActual: 'home',
-      user: null
-    }
-  },
-  mounted() {
-    const token = localStorage.getItem('token');
-    const userStr = localStorage.getItem('user');
-    
-    if (token) {
-      if (userStr) {
-        try {
-          this.user = JSON.parse(userStr);
-        } catch (e) {
-          console.error('Error parsing user data', e);
-        }
-      } else {
-         this.user = { name: 'Usuari' }; 
+  export default {
+    name: 'GestoLanding',
+    data () {
+      return {
+        paginaActual: 'home',
+        user: null,
       }
-    }
-
-    AOS.init({
-      offset: 100,
-      duration: 800,
-      easing: 'ease-out-cubic',
-      once: true
-    });
-  },
-  methods: {
-    logout() {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      this.user = null;
-      this.paginaActual = 'home';
-      this.$router.push('/');
     },
-    simularNav(desti) {
-      if (desti === 'traductor') {
-        this.$router.push('/Camara');
-      } else if (desti === 'login') {
-        this.$router.push('/login');
-      } else if (desti === 'registre') {
-        this.$router.push('/register');
-      } else if (desti === 'tutorial') {
-        this.$router.push('/aprendre');
-      } else {
-        this.paginaActual = desti;
-        setTimeout(() => {
-          window.scrollTo(0,0);
-          AOS.refresh();
-        }, 100);
+    mounted () {
+      const token = localStorage.getItem('token')
+      const userStr = localStorage.getItem('user')
+
+      if (token) {
+        if (userStr) {
+          try {
+            this.user = JSON.parse(userStr)
+          } catch (error) {
+            console.error('Error parsing user data', error)
+          }
+        } else {
+          this.user = { name: 'Usuari' }
+        }
       }
-    }
+
+      AOS.init({
+        offset: 100,
+        duration: 800,
+        easing: 'ease-out-cubic',
+        once: true,
+      })
+    },
+    methods: {
+      logout () {
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        this.user = null
+        this.paginaActual = 'home'
+        this.$router.push('/')
+      },
+      simularNav (desti) {
+        switch (desti) {
+          case 'traductor': {
+            this.$router.push('/Camara')
+
+            break
+          }
+          case 'login': {
+            this.$router.push('/login')
+
+            break
+          }
+          case 'registre': {
+            this.$router.push('/register')
+
+            break
+          }
+          case 'tutorial': {
+            this.$router.push('/aprendre')
+
+            break
+          }
+          default: {
+            this.paginaActual = desti
+            setTimeout(() => {
+              window.scrollTo(0, 0)
+              AOS.refresh()
+            }, 100)
+          }
+        }
+      },
+    },
   }
-}
 </script>
 
 <style scoped>
@@ -273,13 +294,13 @@ export default {
 
 .gesto-app {
   font-family: 'Inter', sans-serif;
-  background-color: #0a0a0a; 
-  color: #E0E0E0; 
+  background-color: #0a0a0a;
+  color: #E0E0E0;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
   width: 100%;
-  overflow-x: hidden; 
+  overflow-x: hidden;
   position: relative;
 }
 
@@ -302,39 +323,39 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 .btn-logout:hover { border-color: #ffca28; color: #ffca28; }
 
 .hero { height: 85vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; position: relative; background: transparent; }
-.hero h1 { 
-  font-size: 4rem; 
-  font-weight: 800; 
-  line-height: 1.1; 
-  margin-bottom: 24px; 
-  background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%); 
-  -webkit-background-clip: text; 
-  background-clip: text; 
-  -webkit-text-fill-color: transparent; 
-  color: transparent; 
+.hero h1 {
+  font-size: 4rem;
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
   letter-spacing: -1px;
 }
 .hero p { font-size: 1.25rem; color: #A0A0A0; max-width: 600px; margin: 0 auto 48px auto; }
 .scroll-indicator { margin-top: 60px; opacity: 0.5; }
 
-.btn-primary { 
-  background: linear-gradient(135deg, #00BFFF 0%, #0080FF 100%); 
-  color: #000; 
-  padding: 18px 48px; 
-  font-size: 1.1rem; 
-  font-weight: 800; 
-  border: none; 
-  border-radius: 50px; 
-  cursor: pointer; 
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-  box-shadow: 0 10px 30px rgba(0, 191, 255, 0.3); 
-  text-transform: uppercase; 
-  letter-spacing: 2px; 
+.btn-primary {
+  background: linear-gradient(135deg, #00BFFF 0%, #0080FF 100%);
+  color: #000;
+  padding: 18px 48px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 10px 30px rgba(0, 191, 255, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 2px;
 }
-.btn-primary:hover { 
-  background: linear-gradient(135deg, #33CFFF 0%, #00BFFF 100%); 
-  box-shadow: 0 15px 40px rgba(0, 191, 255, 0.5); 
-  transform: translateY(-5px) scale(1.02); 
+.btn-primary:hover {
+  background: linear-gradient(135deg, #33CFFF 0%, #00BFFF 100%);
+  box-shadow: 0 15px 40px rgba(0, 191, 255, 0.5);
+  transform: translateY(-5px) scale(1.02);
 }
 .btn-primary.small { padding: 14px 32px; font-size: 0.95rem; margin-top: 15px; }
 
@@ -347,15 +368,15 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 .info-content h2 { font-size: 2.5rem; margin-bottom: 20px; color: #fff; font-weight: 800; }
 .info-content p { color: #888; margin-bottom: 30px; font-size: 1.1rem; max-width: 500px; }
 
-.visual-placeholder { 
-  width: 100%; 
-  height: 400px; 
-  background: rgba(255, 255, 255, 0.03); 
-  border-radius: 20px; 
-  overflow: hidden; 
-  border: 1px solid rgba(255, 255, 255, 0.08); 
+.visual-placeholder {
+  width: 100%;
+  height: 400px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(10px);
-  box-shadow: 0 10px 40px rgba(0,0,0,0.4); 
+  box-shadow: 0 10px 40px rgba(0,0,0,0.4);
 }
 .feature-image { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; transition: transform 0.5s ease; }
 .visual-placeholder:hover .feature-image { transform: scale(1.05); }
@@ -379,13 +400,13 @@ footer { padding: 60px 0; text-align: center; border-top: 1px solid rgba(255, 25
 .demo-gif { width: 100%; height: auto; display: block; }
 
 .steps-explanation { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; max-width: 1000px; margin: 0 auto; }
-.step-item { 
-  background: rgba(255, 255, 255, 0.03); 
-  padding: 40px 30px; 
-  border-radius: 20px; 
-  border: 1px solid rgba(255, 255, 255, 0.08); 
+.step-item {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 40px 30px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(10px);
-  text-align: center; 
+  text-align: center;
   transition: transform 0.3s ease, border-color 0.3s ease;
 }
 .step-item:hover {
@@ -397,20 +418,20 @@ footer { padding: 60px 0; text-align: center; border-top: 1px solid rgba(255, 25
 /* RESPONSIVE MÓVIL */
 @media (max-width: 768px) {
   .hero h1 { font-size: 2.5rem; }
-  
+
   /* Convertimos la grid en flex column para móviles */
-  .info-grid { 
-    display: flex; 
-    flex-direction: column; 
+  .info-grid {
+    display: flex;
+    flex-direction: column;
     gap: 30px;
   }
-  
+
   /* order: -1 asegura que la imagen SIEMPRE esté arriba del texto en móvil */
-  .visual-placeholder { 
-    height: 250px; 
-    order: -1; 
+  .visual-placeholder {
+    height: 250px;
+    order: -1;
   }
-  
+
   .steps-explanation { grid-template-columns: 1fr; }
 }
 </style>

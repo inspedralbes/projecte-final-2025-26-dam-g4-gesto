@@ -1,8 +1,15 @@
 <template>
   <div class="camera-container">
-    <video ref="videoRef" autoplay muted playsinline class="fullscreen-video" :class="{ espejo: facingMode === 'user' }"></video>
-    <DrawSkeleton class="skeleton-overlay" v-if="mostrarEsquelet" :handsData="manosDetectadas" :esFrontal="facingMode === 'user'" />
-    
+    <video
+      ref="videoRef"
+      autoplay
+      class="fullscreen-video"
+      :class="{ espejo: facingMode === 'user' }"
+      muted
+      playsinline
+    />
+    <DrawSkeleton v-if="mostrarEsquelet" class="skeleton-overlay" :es-frontal="facingMode === 'user'" :hands-data="manosDetectadas" />
+
     <!-- Overlay de càrrega de la IA -->
     <div v-if="carregant" class="loading-overlay">
       <LoadingSpinner />
@@ -11,90 +18,127 @@
 
     <!-- Logo top-left -->
     <div class="top-logo">
-      <svg viewBox="0 0 24 24"><path d="M9,2C7.9,2 7,2.9 7,4V17H5V5C5,4.45 4.55,4 4,4C3.45,4 3,4.45 3,5V17C3,19.2 4.8,21 7,21H13.5C15.42,21 17.55,20.03 18.9,18.66L20.8,16.76C21.18,16.38 21.18,15.75 20.8,15.36L19.4,13.96C19,13.58 18.4,13.58 18,13.96L17,14.96V8C17,7.45 16.55,7 16,7C15.45,7 15,7.45 15,8V12H13V3C13,2.45 12.55,2 12,2C11.45,2 11,2.45 11,3V12H9V2Z"/></svg>
+      <svg viewBox="0 0 24 24"><path d="M9,2C7.9,2 7,2.9 7,4V17H5V5C5,4.45 4.55,4 4,4C3.45,4 3,4.45 3,5V17C3,19.2 4.8,21 7,21H13.5C15.42,21 17.55,20.03 18.9,18.66L20.8,16.76C21.18,16.38 21.18,15.75 20.8,15.36L19.4,13.96C19,13.58 18.4,13.58 18,13.96L17,14.96V8C17,7.45 16.55,7 16,7C15.45,7 15,7.45 15,8V12H13V3C13,2.45 12.55,2 12,2C11.45,2 11,2.45 11,3V12H9V2Z" /></svg>
       <span>GESTO</span>
     </div>
 
     <!-- Status pill top-right -->
     <div class="status-pill" :class="{ active: manosDetectadas.length > 0, loading: signoDetectado === 'Carregant model...' }">
-      <span class="status-dot"></span>
+      <span class="status-dot" />
       <span>{{ signoDetectado === 'Carregant model...' ? 'Carregant IA...' : manosDetectadas.length > 0 ? 'Mà detectada' : 'Esperant...' }}</span>
     </div>
 
     <!-- HUD signe detectat -->
     <transition name="hud-pop">
-      <div class="traduccion-hud" v-if="signoDetectado && signoDetectado !== '' && signoDetectado !== 'Mà detectada...' && signoDetectado !== 'Carregant model...' && signoDetectado !== 'IA Llista!'">
+      <div v-if="signoDetectado && signoDetectado !== '' && signoDetectado !== 'Mà detectada...' && signoDetectado !== 'Carregant model...' && signoDetectado !== 'IA Llista!'" class="traduccion-hud">
         <span class="hud-sign">{{ signoDetectado }}</span>
         <span class="badge-ia">{{ usantIAv2 ? 'IA V2' : 'IA V1' }}</span>
       </div>
     </transition>
 
-    <DatasetCreator :videoElement="videoRef" :usantIAv2="usantIAv2" :handsData="manosDetectadas" />
+    <DatasetCreator :hands-data="manosDetectadas" :usant-i-av2="usantIAv2" :video-element="videoRef" />
 
     <!-- Zona subtítols / frases -->
     <div class="subtitles-zone">
       <transition name="fade-slide">
-        <div class="ia-result" v-if="fraseIA">
+        <div v-if="fraseIA" class="ia-result">
           <div class="ia-header">
             <span class="ia-badge">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              <svg
+                fill="none"
+                height="14"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                style="margin-right:4px;"
+                viewBox="0 0 24 24"
+                width="14"
+              ><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
               Gesto IA
             </span>
             <div class="ia-actions">
-              <button @click="speak(fraseIA)" title="Llegir">🔊</button>
-              <button @click="fraseIA = ''" title="Tancar">✕</button>
+              <button title="Llegir" @click="speak(fraseIA)">🔊</button>
+              <button title="Tancar" @click="fraseIA = ''">✕</button>
             </div>
           </div>
           <p class="ia-text">{{ fraseIA }}</p>
         </div>
       </transition>
 
-      <div class="words-panel" v-if="bufferParaules.length > 0 || carregantGemini">
+      <div v-if="bufferParaules.length > 0 || carregantGemini" class="words-panel">
         <div class="words-meta">
           <span class="words-label">Signes detectats</span>
           <span class="words-count">{{ bufferParaules.length }}/15</span>
         </div>
         <div class="words-list">
-          <transition-group name="word-pop" tag="div" class="words-inner">
+          <transition-group class="words-inner" name="word-pop" tag="div">
             <span v-for="(p, i) in bufferParaules" :key="i + p" class="word-chip">{{ p }}</span>
           </transition-group>
           <span v-if="carregantIA" class="loading-dots"><span>.</span><span>.</span><span>.</span></span>
         </div>
         <div class="phrase-actions">
-          <button class="phrase-btn btn-delete" @click="borrarUltimaParaula" :disabled="bufferParaules.length === 0 || carregantIA">⌫ Desfer</button>
-          <button class="phrase-btn btn-clear" @click="netejarBuffer" :disabled="bufferParaules.length === 0 || carregantIA">✕ Netejar</button>
-          <button class="phrase-btn btn-speak" @click="llegirBuffer" :disabled="bufferParaules.length === 0">🔊 Llegir</button>
-          <button class="phrase-btn btn-ia" @click="generarFraseIA" :disabled="bufferParaules.length === 0 || carregantIA">
+          <button class="phrase-btn btn-delete" :disabled="bufferParaules.length === 0 || carregantIA" @click="borrarUltimaParaula">⌫ Desfer</button>
+          <button class="phrase-btn btn-clear" :disabled="bufferParaules.length === 0 || carregantIA" @click="netejarBuffer">✕ Netejar</button>
+          <button class="phrase-btn btn-speak" :disabled="bufferParaules.length === 0" @click="llegirBuffer">🔊 Llegir</button>
+          <button class="phrase-btn btn-ia" :disabled="bufferParaules.length === 0 || carregantIA" @click="generarFraseIA">
             <span v-if="!carregantIA" class="btn-ia-content">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              <svg
+                fill="none"
+                height="16"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                style="margin-right:6px;"
+                viewBox="0 0 24 24"
+                width="16"
+              ><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
               Interpretar signes
             </span>
             <span v-else class="btn-ia-content">
-              <svg class="spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
+              <svg
+                class="spinner"
+                fill="none"
+                height="16"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                style="margin-right:6px;"
+                viewBox="0 0 24 24"
+                width="16"
+              ><line x1="12" x2="12" y1="2" y2="6" /><line x1="12" x2="12" y1="18" y2="22" /><line x1="4.93" x2="7.76" y1="4.93" y2="7.76" /><line x1="16.24" x2="19.07" y1="16.24" y2="19.07" /><line x1="2" x2="6" y1="12" y2="12" /><line x1="18" x2="22" y1="12" y2="12" /><line x1="4.93" x2="7.76" y1="19.07" y2="16.24" /><line x1="16.24" x2="19.07" y1="7.76" y2="4.93" /></svg>
               Processant IA...
             </span>
           </button>
         </div>
       </div>
 
-      <div class="buffer-hint" v-else>
+      <div v-else class="buffer-hint">
         <span>✋</span><p>Fes signes per construir frases</p>
       </div>
     </div>
 
     <!-- Controls panel lateral dret -->
     <div class="controls-panel">
-      <button class="ctrl-btn" @click="goHome" title="Inici">
+      <button class="ctrl-btn" title="Inici" @click="goHome">
         <span class="ctrl-icon">🏠</span><span class="ctrl-label">Inici</span>
       </button>
-      <div class="ctrl-divider"></div>
-      <button class="ctrl-btn" :class="{ actiu: mostrarEsquelet }" @click="mostrarEsquelet = !mostrarEsquelet" title="Esquelet">
+      <div class="ctrl-divider" />
+      <button class="ctrl-btn" :class="{ actiu: mostrarEsquelet }" title="Esquelet" @click="mostrarEsquelet = !mostrarEsquelet">
         <span class="ctrl-icon">👁️</span><span class="ctrl-label">Esquelet</span>
       </button>
-      <button class="ctrl-btn" @click="switchCamera" title="Canviar càmera">
+      <button class="ctrl-btn" title="Canviar càmera" @click="switchCamera">
         <span class="ctrl-icon">🔄</span><span class="ctrl-label">Càmera</span>
       </button>
-      <button class="ctrl-btn" :class="{ actiu: usantIAv2 }" @click="canviarIA" :disabled="carregant" title="Model IA">
+      <button
+        class="ctrl-btn"
+        :class="{ actiu: usantIAv2 }"
+        :disabled="carregant"
+        title="Model IA"
+        @click="canviarIA"
+      >
         <span class="ctrl-icon">🧠</span><span class="ctrl-label">{{ usantIAv2 ? 'V2' : 'V1' }}</span>
       </button>
     </div>
@@ -104,175 +148,175 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
-import { useRouter } from 'vue-router';
-import { GestureService as GestureServiceOriginal } from '../services/GestureService';
-import { GestureService as GestureServiceV2 } from '../services/gestureservices2';
-import DrawSkeleton from '../components/DrawSkeleton.vue';
-import DatasetCreator from '@/components/DatasetCreator.vue';
-import LoadingSpinner from '../components/LoadingSpinner.vue';
+  import { onBeforeUnmount, onMounted, ref } from 'vue'
+  import { useRouter } from 'vue-router'
+  import DatasetCreator from '@/components/DatasetCreator.vue'
+  import DrawSkeleton from '../components/DrawSkeleton.vue'
+  import LoadingSpinner from '../components/LoadingSpinner.vue'
+  import { GestureService as GestureServiceOriginal } from '../services/GestureService'
+  import { GestureService as GestureServiceV2 } from '../services/gestureservices2'
 
-const router = useRouter();
-const videoRef = ref(null);
-const error = ref(null);
-const facingMode = ref('user');
-let currentStream = null;
-const usantIAv2 = ref(true);
-const carregant = ref(false);
-let gestureService = null;
-const manosDetectadas = ref([]);
-const signoDetectado = ref('Iniciant IA...');
-let animationFrameId = null;
-const mostrarEsquelet = ref(false);
-const lastSpokenSigno = ref(null);
+  const router = useRouter()
+  const videoRef = ref(null)
+  const error = ref(null)
+  const facingMode = ref('user')
+  let currentStream = null
+  const usantIAv2 = ref(true)
+  const carregant = ref(false)
+  let gestureService = null
+  const manosDetectadas = ref([])
+  const signoDetectado = ref('Iniciant IA...')
+  let animationFrameId = null
+  const mostrarEsquelet = ref(false)
+  const lastSpokenSigno = ref(null)
 
-// Sistema de frases
-const bufferParaules = ref([]);
-const fraseIA = ref('');
-const carregantIA = ref(false);
-const ultimaParaulaAfegida = ref(null);
-const IA_API_URL = '/api/ia/generar-frase';
+  // Sistema de frases
+  const bufferParaules = ref([])
+  const fraseIA = ref('')
+  const carregantIA = ref(false)
+  const ultimaParaulaAfegida = ref(null)
+  const IA_API_URL = '/api/ia/generar-frase'
 
-const borrarUltimaParaula = () => {
-  bufferParaules.value.pop();
-  ultimaParaulaAfegida.value = bufferParaules.value[bufferParaules.value.length - 1] ?? null;
-};
-const netejarBuffer = () => {
-  bufferParaules.value = [];
-  ultimaParaulaAfegida.value = null;
-  fraseIA.value = '';
-};
-const llegirBuffer = () => {
-  if (bufferParaules.value.length) {
-    speak(bufferParaules.value.join(' '));
+  function borrarUltimaParaula () {
+    bufferParaules.value.pop()
+    ultimaParaulaAfegida.value = bufferParaules.value.at(-1) ?? null
   }
-};
-
-const generarFraseIA = async () => {
-  if (!bufferParaules.value.length || carregantIA.value) return;
-  carregantIA.value = true;
-  fraseIA.value = '';
-  try {
-    const res = await fetch(IA_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ signes: bufferParaules.value }) });
-    const data = await res.json();
-    fraseIA.value = data.frase || '⚠️ ' + (data.error || 'Error generant la frase');
-    if (data.frase) speak(data.frase);
-  } catch (e) {
-    fraseIA.value = '⚠️ Error de connexió amb el servidor';
-  } finally {
-    carregantIA.value = false;
+  function netejarBuffer () {
+    bufferParaules.value = []
+    ultimaParaulaAfegida.value = null
+    fraseIA.value = ''
   }
-};
-
-const speak = (text) => {
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'ca-ES';
-    u.rate = 1.2;
-    window.speechSynthesis.speak(u);
-  }
-};
-
-const carregarIA = async () => {
-  carregant.value = true;
-  signoDetectado.value = 'Carregant model...';
-  if (gestureService) {
-    gestureService.destroy();
-    gestureService = null;
-  }
-  try {
-    gestureService = usantIAv2.value ? new GestureServiceV2() : new GestureServiceOriginal();
-    await gestureService.initialize();
-    signoDetectado.value = 'IA Llista!';
-  } catch (e) {
-    signoDetectado.value = 'Error carregant IA';
-  } finally {
-    carregant.value = false;
-  }
-};
-
-const canviarIA = async () => {
-  usantIAv2.value = !usantIAv2.value;
-  await carregarIA();
-};
-
-const startCamera = async () => {
-  if (currentStream) currentStream.getTracks().forEach(t => t.stop());
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: facingMode.value,
-        width: { ideal: 1920 },
-        height: { ideal: 1080 }
-      },
-      audio: false
-    });
-    currentStream = stream;
-    if (videoRef.value) {
-      videoRef.value.srcObject = stream;
-      videoRef.value.onloadeddata = () => {
-        if (animationFrameId) {
-          cancelAnimationFrame(animationFrameId);
-        }
-        predictLoop();
-      };
+  function llegirBuffer () {
+    if (bufferParaules.value.length > 0) {
+      speak(bufferParaules.value.join(' '))
     }
-    error.value = null;
-  } catch (err) {
-    error.value = "No s'ha pogut accedir a la càmera. Verifica els permisos.";
   }
-};
 
-const switchCamera = () => {
-  facingMode.value = facingMode.value === 'environment' ? 'user' : 'environment';
-  startCamera();
-};
-const goHome = () => router.push('/');
+  async function generarFraseIA () {
+    if (bufferParaules.value.length === 0 || carregantIA.value) return
+    carregantIA.value = true
+    fraseIA.value = ''
+    try {
+      const res = await fetch(IA_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ signes: bufferParaules.value }) })
+      const data = await res.json()
+      fraseIA.value = data.frase || '⚠️ ' + (data.error || 'Error generant la frase')
+      if (data.frase) speak(data.frase)
+    } catch {
+      fraseIA.value = '⚠️ Error de connexió amb el servidor'
+    } finally {
+      carregantIA.value = false
+    }
+  }
 
-const predictLoop = () => {
-  if (gestureService && !carregant.value && videoRef.value && videoRef.value.readyState === 4) {
-    const result = gestureService.detect(videoRef.value, performance.now());
-    if (result) {
-      manosDetectadas.value = result.hands || [];
-      if (result.signo) {
-        const s = result.signo;
-        if (s !== signoDetectado.value) {
-          signoDetectado.value = s;
-          lastSpokenSigno.value = s;
-        }
-        const valid = s !== 'none' && s !== 'Mà detectada' && s !== 'Esperant signes...';
-        if (valid && s !== ultimaParaulaAfegida.value) {
-          bufferParaules.value.push(s);
-          ultimaParaulaAfegida.value = s;
-          if (bufferParaules.value.length > 15) {
-            bufferParaules.value.shift();
+  function speak (text) {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel()
+      const u = new SpeechSynthesisUtterance(text)
+      u.lang = 'ca-ES'
+      u.rate = 1.2
+      window.speechSynthesis.speak(u)
+    }
+  }
+
+  async function carregarIA () {
+    carregant.value = true
+    signoDetectado.value = 'Carregant model...'
+    if (gestureService) {
+      gestureService.destroy()
+      gestureService = null
+    }
+    try {
+      gestureService = usantIAv2.value ? new GestureServiceV2() : new GestureServiceOriginal()
+      await gestureService.initialize()
+      signoDetectado.value = 'IA Llista!'
+    } catch {
+      signoDetectado.value = 'Error carregant IA'
+    } finally {
+      carregant.value = false
+    }
+  }
+
+  async function canviarIA () {
+    usantIAv2.value = !usantIAv2.value
+    await carregarIA()
+  }
+
+  async function startCamera () {
+    if (currentStream) for (const t of currentStream.getTracks()) t.stop()
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: facingMode.value,
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+        },
+        audio: false,
+      })
+      currentStream = stream
+      if (videoRef.value) {
+        videoRef.value.srcObject = stream
+        videoRef.value.addEventListener('loadeddata', () => {
+          if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId)
           }
+          predictLoop()
+        })
+      }
+      error.value = null
+    } catch {
+      error.value = 'No s\'ha pogut accedir a la càmera. Verifica els permisos.'
+    }
+  }
+
+  function switchCamera () {
+    facingMode.value = facingMode.value === 'environment' ? 'user' : 'environment'
+    startCamera()
+  }
+  const goHome = () => router.push('/')
+
+  function predictLoop () {
+    if (gestureService && !carregant.value && videoRef.value && videoRef.value.readyState === 4) {
+      const result = gestureService.detect(videoRef.value, performance.now())
+      if (result) {
+        manosDetectadas.value = result.hands || []
+        if (result.signo) {
+          const s = result.signo
+          if (s !== signoDetectado.value) {
+            signoDetectado.value = s
+            lastSpokenSigno.value = s
+          }
+          const valid = s !== 'none' && s !== 'Mà detectada' && s !== 'Esperant signes...'
+          if (valid && s !== ultimaParaulaAfegida.value) {
+            bufferParaules.value.push(s)
+            ultimaParaulaAfegida.value = s
+            if (bufferParaules.value.length > 15) {
+              bufferParaules.value.shift()
+            }
+          }
+        } else {
+          signoDetectado.value = manosDetectadas.value.length > 0 ? 'Mà detectada...' : ''
+          lastSpokenSigno.value = null
+          ultimaParaulaAfegida.value = null
         }
       } else {
-        signoDetectado.value = manosDetectadas.value.length > 0 ? 'Mà detectada...' : '';
-        lastSpokenSigno.value = null;
-        ultimaParaulaAfegida.value = null;
+        manosDetectadas.value = []
+        signoDetectado.value = ''
+        lastSpokenSigno.value = null
+        ultimaParaulaAfegida.value = null
       }
-    } else {
-      manosDetectadas.value = [];
-      signoDetectado.value = '';
-      lastSpokenSigno.value = null;
-      ultimaParaulaAfegida.value = null;
     }
+    animationFrameId = requestAnimationFrame(predictLoop)
   }
-  animationFrameId = requestAnimationFrame(predictLoop);
-};
 
-onMounted(async () => {
-  await carregarIA();
-  startCamera();
-});
-onBeforeUnmount(() => {
-  if (animationFrameId) cancelAnimationFrame(animationFrameId);
-  if (currentStream) currentStream.getTracks().forEach(t => t.stop());
-  if (gestureService) gestureService.destroy();
-});
+  onMounted(async () => {
+    await carregarIA()
+    startCamera()
+  })
+  onBeforeUnmount(() => {
+    if (animationFrameId) cancelAnimationFrame(animationFrameId)
+    if (currentStream) for (const t of currentStream.getTracks()) t.stop()
+    if (gestureService) gestureService.destroy()
+  })
 </script>
 
 <style scoped>
@@ -356,23 +400,23 @@ onBeforeUnmount(() => {
   to   { box-shadow: 0 6px 36px rgba(0,255,180,0.4); border-color: rgba(0,255,180,0.5); }
 }
 .ia-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-.ia-badge { 
+.ia-badge {
   display: flex; align-items: center;
-  font-size: 0.8rem; font-weight: 700; color: #00ffb4; 
-  background: rgba(0,255,180,0.1); padding: 4px 12px; 
-  border-radius: 20px; border: 1px solid rgba(0,255,180,0.3); 
+  font-size: 0.8rem; font-weight: 700; color: #00ffb4;
+  background: rgba(0,255,180,0.1); padding: 4px 12px;
+  border-radius: 20px; border: 1px solid rgba(0,255,180,0.3);
 }
 .ia-actions { display: flex; gap: 8px; }
-.ia-actions button { 
-  background: rgba(255,255,255,0.1); border: none; color: #fff; 
-  border-radius: 50%; width: 32px; height: 32px; 
+.ia-actions button {
+  background: rgba(255,255,255,0.1); border: none; color: #fff;
+  border-radius: 50%; width: 32px; height: 32px;
   cursor: pointer; font-size: 0.9rem; transition: all 0.2s ease;
   display: flex; align-items: center; justify-content: center;
 }
 .ia-actions button:hover { background: rgba(0,191,255,0.2); color: #00BFFF; transform: scale(1.1); }
-.ia-text { 
-  margin: 0; color: #e0f2fe; font-size: 1.3rem; 
-  font-weight: 600; line-height: 1.5; letter-spacing: 0.3px; 
+.ia-text {
+  margin: 0; color: #e0f2fe; font-size: 1.3rem;
+  font-weight: 600; line-height: 1.5; letter-spacing: 0.3px;
 }
 
 /* Panel paraules */

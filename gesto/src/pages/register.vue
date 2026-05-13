@@ -2,8 +2,8 @@
   <div class="gesto-app">
     <!-- Fons animat amb blobs -->
     <div class="bg-blobs">
-      <div class="blob blob-1"></div>
-      <div class="blob blob-2"></div>
+      <div class="blob blob-1" />
+      <div class="blob blob-2" />
     </div>
 
     <div class="container">
@@ -28,29 +28,54 @@
         <form @submit.prevent="handleRegister">
           <div class="form-group">
             <label for="name">Nom complet</label>
-            <input type="text" id="name" v-model="form.name" required maxlength="32" placeholder="El teu nom">
+            <input
+              id="name"
+              v-model="form.name"
+              maxlength="32"
+              placeholder="El teu nom"
+              required
+              type="text"
+            >
           </div>
 
           <div class="form-group">
             <label for="email">Correu electrònic</label>
-            <input type="email" id="email" v-model="form.email" required placeholder="exemple@correu.com">
+            <input
+              id="email"
+              v-model="form.email"
+              placeholder="exemple@correu.com"
+              required
+              type="email"
+            >
           </div>
 
           <div class="form-group">
             <label for="password">Contrasenya</label>
-            <input type="password" id="password" v-model="form.password" required placeholder="••••••••">
+            <input
+              id="password"
+              v-model="form.password"
+              placeholder="••••••••"
+              required
+              type="password"
+            >
           </div>
 
           <div class="form-group">
             <label for="confirmPassword">Confirmar Contrasenya</label>
-            <input type="password" id="confirmPassword" v-model="form.confirmPassword" required placeholder="••••••••">
+            <input
+              id="confirmPassword"
+              v-model="form.confirmPassword"
+              placeholder="••••••••"
+              required
+              type="password"
+            >
           </div>
 
           <div v-if="loading" class="spinner-container">
             <LoadingSpinner />
             <p>Creant compte...</p>
           </div>
-          <button v-else type="submit" class="btn-primary full-width">REGISTRAR-SE</button>
+          <button v-else class="btn-primary full-width" type="submit">REGISTRAR-SE</button>
         </form>
 
         <p class="auth-footer">
@@ -62,105 +87,105 @@
 </template>
 
 <script>
-import AOS from 'aos';
-import 'aos/dist/aos.css';
-import LoadingSpinner from '../components/LoadingSpinner.vue';
-import Swal from 'sweetalert2';
+  import AOS from 'aos'
+  import Swal from 'sweetalert2'
+  import LoadingSpinner from '../components/LoadingSpinner.vue'
+  import 'aos/dist/aos.css'
 
-export default {
-  name: 'RegisterPage',
-  components: {
-    LoadingSpinner
-  },
-  data() {
-    return {
-      form: {
-        name: '',
-        email: '',
-        password: '',
-        confirmPassword: ''
-      },
-      loading: false
-    }
-  },
-  mounted() {
-    AOS.init({
-      offset: 50,
-      duration: 800,
-      easing: 'ease-out-cubic',
-      once: true
-    });
-  },
-  methods: {
-    async handleRegister() {
-      if (this.form.password !== this.form.confirmPassword) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Les contrasenyes no coincideixen',
-          background: '#1a1a1a',
-          color: '#fff',
-          confirmButtonColor: '#00BFFF'
-        });
-        return;
+  export default {
+    name: 'RegisterPage',
+    components: {
+      LoadingSpinner,
+    },
+    data () {
+      return {
+        form: {
+          name: '',
+          email: '',
+          password: '',
+          confirmPassword: '',
+        },
+        loading: false,
       }
-
-      this.loading = true;
-
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            name: this.form.name,
-            email: this.form.email,
-            password: this.form.password
-          })
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-          await Swal.fire({
-            icon: 'success',
-            title: 'Perfecte!',
-            text: 'Registre completat amb èxit!',
+    },
+    mounted () {
+      AOS.init({
+        offset: 50,
+        duration: 800,
+        easing: 'ease-out-cubic',
+        once: true,
+      })
+    },
+    methods: {
+      async handleRegister () {
+        if (this.form.password !== this.form.confirmPassword) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Les contrasenyes no coincideixen',
             background: '#1a1a1a',
             color: '#fff',
             confirmButtonColor: '#00BFFF',
-            timer: 2000,
-            timerProgressBar: true,
-            showConfirmButton: false
-          });
-          this.$router.push('/login');
-        } else {
+          })
+          return
+        }
+
+        this.loading = true
+
+        try {
+          const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              name: this.form.name,
+              email: this.form.email,
+              password: this.form.password,
+            }),
+          })
+
+          const data = await response.json()
+
+          if (response.ok) {
+            await Swal.fire({
+              icon: 'success',
+              title: 'Perfecte!',
+              text: 'Registre completat amb èxit!',
+              background: '#1a1a1a',
+              color: '#fff',
+              confirmButtonColor: '#00BFFF',
+              timer: 2000,
+              timerProgressBar: true,
+              showConfirmButton: false,
+            })
+            this.$router.push('/login')
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error en el registre',
+              text: data.msg || 'No s\'ha pogut completar el registre.',
+              background: '#1a1a1a',
+              color: '#fff',
+              confirmButtonColor: '#00BFFF',
+            })
+          }
+        } catch (error) {
+          console.error('Error:', error)
           Swal.fire({
             icon: 'error',
-            title: 'Error en el registre',
-            text: data.msg || 'No s\'ha pogut completar el registre.',
+            title: 'Error de connexió',
+            text: 'No s\'ha pogut connectar amb el servidor',
             background: '#1a1a1a',
             color: '#fff',
-            confirmButtonColor: '#00BFFF'
-          });
+            confirmButtonColor: '#00BFFF',
+          })
+        } finally {
+          this.loading = false
         }
-      } catch (error) {
-        console.error('Error:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error de connexió',
-          text: 'No s\'ha pogut connectar amb el servidor',
-          background: '#1a1a1a',
-          color: '#fff',
-          confirmButtonColor: '#00BFFF'
-        });
-      } finally {
-        this.loading = false;
-      }
-    }
+      },
+    },
   }
-}
 </script>
 
 <style scoped>
@@ -168,8 +193,8 @@ export default {
 
 .gesto-app {
   font-family: 'Inter', sans-serif;
-  background-color: #0a0a0a; 
-  color: #E0E0E0; 
+  background-color: #0a0a0a;
+  color: #E0E0E0;
   min-height: 100vh;
   width: 100%;
   position: relative;
@@ -252,7 +277,7 @@ nav {
 .nav-links button:hover { color: #fff; }
 
 .auth-container {
-  min-height: calc(100vh - 80px); 
+  min-height: calc(100vh - 80px);
   display: flex;
   justify-content: center;
   align-items: center;

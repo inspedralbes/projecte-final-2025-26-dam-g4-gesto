@@ -1,16 +1,23 @@
 <template>
   <div class="learning-view">
-    
+
     <template v-if="nivelActivo === null">
       <div class="learning-header">
         <button class="btn-close" @click="tornarAInici">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          <svg
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+          >
+            <path d="M19 12H5M12 19l-7-7 7-7" />
           </svg>
           Sortir
         </button>
         <div class="progress-bar-container">
-          <div class="progress-bar-fill global-progress" :style="{ width: porcentajeGlobal + '%' }"></div>
+          <div class="progress-bar-fill global-progress" :style="{ width: porcentajeGlobal + '%' }" />
         </div>
       </div>
 
@@ -30,11 +37,18 @@
               :class="{ 'current': nivelDesbloqueado === 1, 'completed': 1 < nivelDesbloqueado }"
               @click="intentarEntrarNivel(niveles[0])"
             >
-              <svg v-if="1 < nivelDesbloqueado" viewBox="0 0 24 24" class="node-icon">
-                <path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              <svg v-if="1 < nivelDesbloqueado" class="node-icon" viewBox="0 0 24 24">
+                <path
+                  d="M20 6L9 17l-5-5"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="3"
+                />
               </svg>
-              <svg v-else-if="nivelDesbloqueado === 1" viewBox="0 0 24 24" class="node-icon">
-                <path d="M8 5v14l11-7z" fill="currentColor"/>
+              <svg v-else-if="nivelDesbloqueado === 1" class="node-icon" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" fill="currentColor" />
               </svg>
             </button>
             <div class="node-info">
@@ -44,10 +58,15 @@
           </div>
 
           <!-- CONNECTOR 1→2: va cap a la dreta -->
-          <svg class="zz-connector" width="240" height="44" viewBox="0 0 240 44">
-            <path d="M 30,0 C 30,22 210,22 210,44" fill="none" stroke-width="5" stroke-dasharray="10 6"
+          <svg class="zz-connector" height="44" viewBox="0 0 240 44" width="240">
+            <path
+              :class="nivelDesbloqueado >= 2 ? 'path-animated' : ''"
+              d="M 30,0 C 30,22 210,22 210,44"
+              fill="none"
               :stroke="nivelDesbloqueado >= 2 ? '#00BFFF' : '#2a2a2a'"
-              :class="nivelDesbloqueado >= 2 ? 'path-animated' : ''" />
+              stroke-dasharray="10 6"
+              stroke-width="5"
+            />
           </svg>
 
           <!-- NODE 2 — stagger dreta -->
@@ -58,11 +77,18 @@
               :class="{ 'current': nivelDesbloqueado === 2, 'completed': 2 < nivelDesbloqueado }"
               @click="intentarEntrarNivel(niveles[1])"
             >
-              <svg v-if="2 < nivelDesbloqueado" viewBox="0 0 24 24" class="node-icon">
-                <path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              <svg v-if="2 < nivelDesbloqueado" class="node-icon" viewBox="0 0 24 24">
+                <path
+                  d="M20 6L9 17l-5-5"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="3"
+                />
               </svg>
-              <svg v-else-if="nivelDesbloqueado === 2" viewBox="0 0 24 24" class="node-icon">
-                <path d="M8 5v14l11-7z" fill="currentColor"/>
+              <svg v-else-if="nivelDesbloqueado === 2" class="node-icon" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" fill="currentColor" />
               </svg>
             </button>
             <div class="node-info">
@@ -72,10 +98,15 @@
           </div>
 
           <!-- CONNECTOR 2→3: torna cap a l'esquerra -->
-          <svg class="zz-connector" width="240" height="44" viewBox="0 0 240 44">
-            <path d="M 210,0 C 210,22 30,22 30,44" fill="none" stroke-width="5" stroke-dasharray="10 6"
+          <svg class="zz-connector" height="44" viewBox="0 0 240 44" width="240">
+            <path
+              :class="nivelDesbloqueado >= 3 ? 'path-animated' : ''"
+              d="M 210,0 C 210,22 30,22 30,44"
+              fill="none"
               :stroke="nivelDesbloqueado >= 3 ? '#00BFFF' : '#2a2a2a'"
-              :class="nivelDesbloqueado >= 3 ? 'path-animated' : ''" />
+              stroke-dasharray="10 6"
+              stroke-width="5"
+            />
           </svg>
 
           <!-- NODE 3 — stagger esquerra -->
@@ -86,11 +117,18 @@
               :class="{ 'current': nivelDesbloqueado === 3, 'completed': 3 < nivelDesbloqueado }"
               @click="intentarEntrarNivel(niveles[2])"
             >
-              <svg v-if="3 < nivelDesbloqueado" viewBox="0 0 24 24" class="node-icon">
-                <path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              <svg v-if="3 < nivelDesbloqueado" class="node-icon" viewBox="0 0 24 24">
+                <path
+                  d="M20 6L9 17l-5-5"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="3"
+                />
               </svg>
-              <svg v-else-if="nivelDesbloqueado === 3" viewBox="0 0 24 24" class="node-icon">
-                <path d="M8 5v14l11-7z" fill="currentColor"/>
+              <svg v-else-if="nivelDesbloqueado === 3" class="node-icon" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" fill="currentColor" />
               </svg>
             </button>
             <div class="node-info">
@@ -100,10 +138,15 @@
           </div>
 
           <!-- CONNECTOR 3→4: va cap a la dreta -->
-          <svg class="zz-connector" width="240" height="44" viewBox="0 0 240 44">
-            <path d="M 30,0 C 30,22 210,22 210,44" fill="none" stroke-width="5" stroke-dasharray="10 6"
+          <svg class="zz-connector" height="44" viewBox="0 0 240 44" width="240">
+            <path
+              :class="nivelDesbloqueado >= 4 ? 'path-animated' : ''"
+              d="M 30,0 C 30,22 210,22 210,44"
+              fill="none"
               :stroke="nivelDesbloqueado >= 4 ? '#00BFFF' : '#2a2a2a'"
-              :class="nivelDesbloqueado >= 4 ? 'path-animated' : ''" />
+              stroke-dasharray="10 6"
+              stroke-width="5"
+            />
           </svg>
 
           <!-- NODE 4 — stagger dreta -->
@@ -114,11 +157,18 @@
               :class="{ 'current': nivelDesbloqueado === 4, 'completed': 4 < nivelDesbloqueado }"
               @click="intentarEntrarNivel(niveles[3])"
             >
-              <svg v-if="4 < nivelDesbloqueado" viewBox="0 0 24 24" class="node-icon">
-                <path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              <svg v-if="4 < nivelDesbloqueado" class="node-icon" viewBox="0 0 24 24">
+                <path
+                  d="M20 6L9 17l-5-5"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="3"
+                />
               </svg>
-              <svg v-else-if="nivelDesbloqueado === 4" viewBox="0 0 24 24" class="node-icon">
-                <path d="M8 5v14l11-7z" fill="currentColor"/>
+              <svg v-else-if="nivelDesbloqueado === 4" class="node-icon" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" fill="currentColor" />
               </svg>
             </button>
             <div class="node-info">
@@ -135,7 +185,7 @@
       <div class="learning-header">
         <button class="btn-close" @click="sortirDeLlico">X</button>
         <div class="progress-bar-container">
-          <div class="progress-bar-fill lesson-progress" :style="{ width: porcentajeLlico + '%' }"></div>
+          <div class="progress-bar-fill lesson-progress" :style="{ width: porcentajeLlico + '%' }" />
         </div>
 
       </div>
@@ -143,46 +193,55 @@
       <div class="learning-content container">
         <h2 class="lesson-title">{{ llicoActualData.titol }}</h2>
         <p class="lesson-instruction">{{ llicoActualData.instruccio }}</p>
-        
+
         <div class="lesson-layout">
           <div class="sign-display">
             <div class="video-wrapper">
               <video
                 :key="llicoActualData.arxiu"
-                :src="llicoActualData.arxiu"
+                autoplay
                 class="sign-media"
-                autoplay loop muted playsinline
+                loop
+                muted
+                playsinline
+                :src="llicoActualData.arxiu"
                 @error="videoError = true"
                 @loadstart="videoError = false"
-              ></video>
+              />
               <!-- Placeholder si el video no existeix encara -->
               <div v-if="videoError" class="video-placeholder">
-                <span class="video-placeholder-icon"></span>
+                <span class="video-placeholder-icon" />
                 <p>{{ llicoActualData.titol }}</p>
                 <small>Video pròximament</small>
               </div>
             </div>
           </div>
 
-          <div 
-            ref="exerciseArea" 
+          <div
+            ref="exerciseArea"
             class="exercise-area"
             :class="{ 'camera-success': tipoFeedback === 'success', 'camera-error': tipoFeedback === 'error' }"
           >
-            <video 
-              ref="webcam" 
-              class="webcam-video" 
-              autoplay 
-              playsinline 
-              muted 
+            <video
+              ref="webcam"
+              autoplay
+              class="webcam-video"
+              :class="{ 'hidden': !cameraReady, 'espejo': true }"
+              muted
+              playsinline
               :style="exerciseAreaStyle"
-              :class="{ 'hidden': !cameraReady, 'espejo': true }">
-            </video>
-            <DrawSkeleton v-if="cameraReady" :handsData="hands" :esFrontal="true" :style="exerciseAreaStyle" />
+            />
+            <DrawSkeleton v-if="cameraReady" :es-frontal="true" :hands-data="hands" :style="exerciseAreaStyle" />
             <div v-if="!cameraReady" class="camera-placeholder">
-              <svg viewBox="0 0 24 24" class="camera-icon" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                <circle cx="12" cy="13" r="4"/>
+              <svg
+                class="camera-icon"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+              >
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                <circle cx="12" cy="13" r="4" />
               </svg>
               <span>Esperant la càmera...</span>
             </div>
@@ -190,7 +249,7 @@
         </div>
 
         <div class="debug-detection" style="text-align:center; color: #555; margin-top: 10px; font-size: 0.9rem;">
-            Detectat: <strong>{{ fraseDetectada || '...' }}</strong>
+          Detectat: <strong>{{ fraseDetectada || '...' }}</strong>
         </div>
 
         <div v-if="mensajeFeedback" class="feedback-banner" :class="tipoFeedback">
@@ -202,10 +261,10 @@
       <div class="learning-footer">
         <div class="container footer-content">
           <div class="auto-detect-indicator" :class="{'success': tipoFeedback === 'success'}">
-            {{ 
-              tipoFeedback === 'success' 
-              ? (pasoActual === totalPasosLlico ? 'COMPLETANT...' : 'GEST CORRECTE! AVANÇANT...') 
-              : 'ESPERANT EL GEST A LA CÀMERA...' 
+            {{
+              tipoFeedback === 'success'
+                ? (pasoActual === totalPasosLlico ? 'COMPLETANT...' : 'GEST CORRECTE! AVANÇANT...')
+                : 'ESPERANT EL GEST A LA CÀMERA...'
             }}
           </div>
         </div>
@@ -213,10 +272,10 @@
 
       <div v-if="mostrarModalSuperat" class="modal-overlay">
         <div class="modal-content">
-          <div class="modal-icon"></div>
+          <div class="modal-icon" />
           <h2>Enhorabona!</h2>
           <p>Has completat amb èxit el <strong>{{ niveles[nivelActivo - 1].titol }}</strong>.</p>
-          
+
           <div class="unlocked-badge">
             Camí actualitzat!
           </div>
@@ -233,294 +292,293 @@
 </template>
 
 <script>
-import DrawSkeleton from '../components/DrawSkeleton.vue';
-import { GestureService } from '../services/gestureservices2.js';
+  import DrawSkeleton from '../components/DrawSkeleton.vue'
+  import { GestureService } from '../services/gestureservices2.js'
 
-// FIX: Guardem el GestureService FORA de la reactivitat de Vue
-// Vue envolta els objectes de data() en Proxies que trenquen MediaPipe
-let _gestureServiceInstance = null;
+  // FIX: Guardem el GestureService FORA de la reactivitat de Vue
+  // Vue envolta els objectes de data() en Proxies que trenquen MediaPipe
+  let _gestureServiceInstance = null
 
-export default {
-  name: 'AprendrePage',
-  components: {
-    DrawSkeleton
-  },
-  data() {
-    return {
-      nivelActivo: null, 
-      pasoActual: 1,
-      nivelDesbloqueado: 1, 
+  export default {
+    name: 'AprendrePage',
+    components: {
+      DrawSkeleton,
+    },
+    data () {
+      return {
+        nivelActivo: null,
+        pasoActual: 1,
+        nivelDesbloqueado: 1,
 
-      gestureService: null,
-      videoElement: null,
-      hands: [], 
-      currentSign: '', 
-      fraseDetectada: '', 
-      cameraReady: false,
-      stream: null, 
-      lastVideoTime: -1, 
-      exerciseAreaStyle: {},
-      videoError: false,
+        gestureService: null,
+        videoElement: null,
+        hands: [],
+        currentSign: '',
+        fraseDetectada: '',
+        cameraReady: false,
+        stream: null,
+        lastVideoTime: -1,
+        exerciseAreaStyle: {},
+        videoError: false,
 
-      mensajeFeedback: null,
-      tipoFeedback: null,
-      feedbackTimeout: null,
-      mostrarModalSuperat: false, 
-      
-      niveles: [
-        {
-          id: 1, 
-          categoria: "Nivell 1", 
-          descripcio: "Nombres (Una mà)", 
-          titol: "De l'Un al Cinc",
-          llicons: [
-            { titol: "Número Un", instruccio: "Aixeca el dit índex.", gestEsperat: "Un", arxiu: "/videos/un.mp4", esVideo: true },
-            { titol: "Número Dos", instruccio: "Aixeca els dits índex i cor.", gestEsperat: "Dos", arxiu: "/videos/dos.mp4", esVideo: true },
-            { titol: "Número Tres", instruccio: "Aixeca els dits polze, índex i cor.", gestEsperat: "Tres", arxiu: "/videos/tres.mp4", esVideo: true },
-            { titol: "Número Quatre", instruccio: "Aixeca quatre dits, amagant el polze.", gestEsperat: "Quatre", arxiu: "/videos/quatre.mp4", esVideo: true },
-            { titol: "Número Cinc", instruccio: "Obre tota la mà.", gestEsperat: "Cinc", arxiu: "/videos/cinc.mp4", esVideo: true }
-          ]
-        },
-        {
-          id: 2, 
-          categoria: "Nivell 2", 
-          descripcio: "Nombres (Dues mans)", 
-          titol: "Del Sis al Deu",
-          llicons: [
-            { titol: "Número Sis", instruccio: "Una mà oberta (Cinc) i un dit de l'altra mà (Un).", gestEsperat: "Sis", arxiu: "/videos/sis.mp4", esVideo: true },
-            { titol: "Número Set", instruccio: "Una mà oberta (Cinc) i dos dits de l'altra mà (Dos).", gestEsperat: "Set", arxiu: "/videos/set.mp4", esVideo: true },
-            { titol: "Número Vuit", instruccio: "Una mà oberta (Cinc) i tres dits de l'altra (Tres).", gestEsperat: "Vuit", arxiu: "/videos/vuit.mp4", esVideo: true },
-            { titol: "Número Nou", instruccio: "Una mà oberta (Cinc) i quatre dits de l'altra (Quatre).", gestEsperat: "Nou", arxiu: "/videos/nou.mp4", esVideo: true },
-            { titol: "Número Deu", instruccio: "Les dues mans obertes (Cinc i Cinc).", gestEsperat: "Deu", arxiu: "/videos/deu.mp4", esVideo: true }
-          ]
-        },
-        {
-          id: 3, 
-          categoria: "Nivell 3", 
-          descripcio: "Social", 
-          titol: "Salutacions",
-          llicons: [
-            { titol: "Hola", instruccio: "Saluda movent la mà de costat a costat.", gestEsperat: "Hola", arxiu: "/videos/hola.mp4", esVideo: true },
-            { titol: "Adeu", instruccio: "Tanca i obre la mà per dir Adeu.", gestEsperat: "Adeu", arxiu: "/videos/adeu.mp4", esVideo: true }
-          ]
-        },
-        {
-          id: 4, 
-          categoria: "Nivell 4", 
-          descripcio: "Frases Bàsiques", 
-          titol: "Jo tinc un amic",
-          llicons: [
-            { titol: "Jo", instruccio: "Assenyala't a tu mateix amb el dit índex.", gestEsperat: "Jo", arxiu: "/videos/jo.mp4", esVideo: true },
-            { titol: "Tinc", instruccio: "Posa la mà plana sobre el pit.", gestEsperat: "Tinc", arxiu: "/videos/tinc.mp4", esVideo: true },
-            { titol: "Amic", instruccio: "Uneix els dits índexs com si fessin un ganxo.", gestEsperat: "Amic", arxiu: "/videos/amic.mp4", esVideo: true },
-            { titol: "Frase completa", instruccio: "Fes els tres gestos seguits: Jo, Tinc, Amic.", gestEsperat: "Jo tinc un amic", arxiu: "/videos/jo_tinc_amic.mp4", esVideo: true }
-          ]
+        mensajeFeedback: null,
+        tipoFeedback: null,
+        feedbackTimeout: null,
+        mostrarModalSuperat: false,
+
+        niveles: [
+          {
+            id: 1,
+            categoria: 'Nivell 1',
+            descripcio: 'Nombres (Una mà)',
+            titol: 'De l\'Un al Cinc',
+            llicons: [
+              { titol: 'Número Un', instruccio: 'Aixeca el dit índex.', gestEsperat: 'Un', arxiu: '/videos/un.mp4', esVideo: true },
+              { titol: 'Número Dos', instruccio: 'Aixeca els dits índex i cor.', gestEsperat: 'Dos', arxiu: '/videos/dos.mp4', esVideo: true },
+              { titol: 'Número Tres', instruccio: 'Aixeca els dits polze, índex i cor.', gestEsperat: 'Tres', arxiu: '/videos/tres.mp4', esVideo: true },
+              { titol: 'Número Quatre', instruccio: 'Aixeca quatre dits, amagant el polze.', gestEsperat: 'Quatre', arxiu: '/videos/quatre.mp4', esVideo: true },
+              { titol: 'Número Cinc', instruccio: 'Obre tota la mà.', gestEsperat: 'Cinc', arxiu: '/videos/cinc.mp4', esVideo: true },
+            ],
+          },
+          {
+            id: 2,
+            categoria: 'Nivell 2',
+            descripcio: 'Nombres (Dues mans)',
+            titol: 'Del Sis al Deu',
+            llicons: [
+              { titol: 'Número Sis', instruccio: 'Una mà oberta (Cinc) i un dit de l\'altra mà (Un).', gestEsperat: 'Sis', arxiu: '/videos/sis.mp4', esVideo: true },
+              { titol: 'Número Set', instruccio: 'Una mà oberta (Cinc) i dos dits de l\'altra mà (Dos).', gestEsperat: 'Set', arxiu: '/videos/set.mp4', esVideo: true },
+              { titol: 'Número Vuit', instruccio: 'Una mà oberta (Cinc) i tres dits de l\'altra (Tres).', gestEsperat: 'Vuit', arxiu: '/videos/vuit.mp4', esVideo: true },
+              { titol: 'Número Nou', instruccio: 'Una mà oberta (Cinc) i quatre dits de l\'altra (Quatre).', gestEsperat: 'Nou', arxiu: '/videos/nou.mp4', esVideo: true },
+              { titol: 'Número Deu', instruccio: 'Les dues mans obertes (Cinc i Cinc).', gestEsperat: 'Deu', arxiu: '/videos/deu.mp4', esVideo: true },
+            ],
+          },
+          {
+            id: 3,
+            categoria: 'Nivell 3',
+            descripcio: 'Social',
+            titol: 'Salutacions',
+            llicons: [
+              { titol: 'Hola', instruccio: 'Saluda movent la mà de costat a costat.', gestEsperat: 'Hola', arxiu: '/videos/hola.mp4', esVideo: true },
+              { titol: 'Adeu', instruccio: 'Tanca i obre la mà per dir Adeu.', gestEsperat: 'Adeu', arxiu: '/videos/adeu.mp4', esVideo: true },
+            ],
+          },
+          {
+            id: 4,
+            categoria: 'Nivell 4',
+            descripcio: 'Frases Bàsiques',
+            titol: 'Jo tinc un amic',
+            llicons: [
+              { titol: 'Jo', instruccio: 'Assenyala\'t a tu mateix amb el dit índex.', gestEsperat: 'Jo', arxiu: '/videos/jo.mp4', esVideo: true },
+              { titol: 'Tinc', instruccio: 'Posa la mà plana sobre el pit.', gestEsperat: 'Tinc', arxiu: '/videos/tinc.mp4', esVideo: true },
+              { titol: 'Amic', instruccio: 'Uneix els dits índexs com si fessin un ganxo.', gestEsperat: 'Amic', arxiu: '/videos/amic.mp4', esVideo: true },
+              { titol: 'Frase completa', instruccio: 'Fes els tres gestos seguits: Jo, Tinc, Amic.', gestEsperat: 'Jo tinc un amic', arxiu: '/videos/jo_tinc_amic.mp4', esVideo: true },
+            ],
+          },
+        ],
+      }
+    },
+    computed: {
+      nivelesVisibles () {
+        return this.niveles.filter(n => n.id <= this.nivelDesbloqueado)
+      },
+      nivelesPorCategoria () {
+        const grupos = []
+        let categoriaActual = ''
+        let grupoActual = null
+
+        for (const nivel of this.nivelesVisibles) {
+          if (nivel.categoria !== categoriaActual) {
+            categoriaActual = nivel.categoria
+            grupoActual = {
+              nom: categoriaActual,
+              descripcio: nivel.descripcio,
+              niveles: [],
+            }
+            grupos.push(grupoActual)
+          }
+          grupoActual.niveles.push(nivel)
         }
-      ]
-    }
-  },
-  computed: {
-    nivelesVisibles() {
-      return this.niveles.filter(n => n.id <= this.nivelDesbloqueado);
+        return grupos
+      },
+      porcentajeGlobal () {
+        const nivelesCompletados = this.nivelDesbloqueado - 1
+        return (nivelesCompletados / this.niveles.length) * 100
+      },
+      llicoActualData () {
+        if (!this.nivelActivo) return null
+        const nivel = this.niveles.find(n => n.id === this.nivelActivo)
+        return nivel.llicons[this.pasoActual - 1]
+      },
+      totalPasosLlico () {
+        if (!this.nivelActivo) return 0
+        return this.niveles.find(n => n.id === this.nivelActivo).llicons.length
+      },
+      porcentajeLlico () {
+        return Math.min(100, ((this.pasoActual - 1) / this.totalPasosLlico) * 100 + (100 / this.totalPasosLlico))
+      },
     },
-    nivelesPorCategoria() {
-      const grupos = [];
-      let categoriaActual = '';
-      let grupoActual = null;
+    mounted () {
+      const progresoGuardado = localStorage.getItem('gesto_nivel_desbloqueado')
+      if (progresoGuardado) {
+        this.nivelDesbloqueado = Number.parseInt(progresoGuardado)
+      }
 
-      this.nivelesVisibles.forEach(nivel => {
-        if (nivel.categoria !== categoriaActual) {
-          categoriaActual = nivel.categoria;
-          grupoActual = { 
-            nom: categoriaActual, 
-            descripcio: nivel.descripcio,
-            niveles: [] 
-          };
-          grupos.push(grupoActual);
-        }
-        grupoActual.niveles.push(nivel);
-      });
-      return grupos;
+      _gestureServiceInstance = new GestureService()
+      _gestureServiceInstance.initialize().catch(error => {
+        console.error('Error al inicializar GestureService:', error)
+      })
     },
-    porcentajeGlobal() {
-      const nivelesCompletados = this.nivelDesbloqueado - 1;
-      return (nivelesCompletados / this.niveles.length) * 100;
+    beforeUnmount () {
+      this.stopCamera()
+      if (this.feedbackTimeout) clearTimeout(this.feedbackTimeout)
     },
-    llicoActualData() {
-      if (!this.nivelActivo) return null;
-      const nivel = this.niveles.find(n => n.id === this.nivelActivo);
-      return nivel.llicons[this.pasoActual - 1];
-    },
-    totalPasosLlico() {
-      if (!this.nivelActivo) return 0;
-      return this.niveles.find(n => n.id === this.nivelActivo).llicons.length;
-    },
-    porcentajeLlico() {
-      return Math.min(100, ((this.pasoActual - 1) / this.totalPasosLlico) * 100 + (100 / this.totalPasosLlico));
-    }
-  },
-  mounted() {
-    const progresoGuardado = localStorage.getItem('gesto_nivel_desbloqueado');
-    if (progresoGuardado) {
-      this.nivelDesbloqueado = parseInt(progresoGuardado);
-    }
-    
-    _gestureServiceInstance = new GestureService();
-    _gestureServiceInstance.initialize().catch(error => {
-      console.error('Error al inicializar GestureService:', error);
-    });
-  },
-  beforeUnmount() {
-    this.stopCamera();
-    if (this.feedbackTimeout) clearTimeout(this.feedbackTimeout);
-  },
-  methods: {
-    stopCamera() {
+    methods: {
+      stopCamera () {
         if (this.stream) {
-            this.stream.getTracks().forEach(track => track.stop());
+          for (const track of this.stream.getTracks()) track.stop()
         }
         if (this.videoElement) {
-            this.videoElement.srcObject = null;
+          this.videoElement.srcObject = null
         }
-        this.cameraReady = false;
-    },
-    async setupCamera() {
-      this.videoElement = this.$refs.webcam; 
-      const exerciseArea = this.$refs.exerciseArea;
+        this.cameraReady = false
+      },
+      async setupCamera () {
+        this.videoElement = this.$refs.webcam
+        const exerciseArea = this.$refs.exerciseArea
 
-      if (!this.videoElement || !exerciseArea) {
-        return;
-      }
-      try {
-        this.stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } });
-        this.videoElement.srcObject = this.stream;
-        this.videoElement.addEventListener('loadeddata', () => {
-          this.cameraReady = true;
-          this.predictWebcam();
-        });
-      } catch (error) {
-        console.error("Error al acceder a la cámara:", error);
-        this.tipoFeedback = 'error';
-        this.mensajeFeedback = "No s'ha pogut accedir a la càmera. Assegura't de donar permisos.";
-      }
-    },
-    predictWebcam() {
-      // Si la càmera o el nivell no estan llestos, parem del tot
-      if (!this.cameraReady || !this.videoElement || !this.nivelActivo) {
-        return;
-      }
-      // Si GestureService encara s'està inicialitzant, esperem i tornem a intentar
-      if (!_gestureServiceInstance || !_gestureServiceInstance.enExecucio) {
-        requestAnimationFrame(this.predictWebcam);
-        return;
-      }
+        if (!this.videoElement || !exerciseArea) {
+          return
+        }
+        try {
+          this.stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } })
+          this.videoElement.srcObject = this.stream
+          this.videoElement.addEventListener('loadeddata', () => {
+            this.cameraReady = true
+            this.predictWebcam()
+          })
+        } catch (error) {
+          console.error('Error al acceder a la cámara:', error)
+          this.tipoFeedback = 'error'
+          this.mensajeFeedback = 'No s\'ha pogut accedir a la càmera. Assegura\'t de donar permisos.'
+        }
+      },
+      predictWebcam () {
+        // Si la càmera o el nivell no estan llestos, parem del tot
+        if (!this.cameraReady || !this.videoElement || !this.nivelActivo) {
+          return
+        }
+        // Si GestureService encara s'està inicialitzant, esperem i tornem a intentar
+        if (!_gestureServiceInstance || !_gestureServiceInstance.enExecucio) {
+          requestAnimationFrame(this.predictWebcam)
+          return
+        }
 
-      const now = performance.now();
-      if (this.lastVideoTime !== this.videoElement.currentTime) {
-        this.lastVideoTime = this.videoElement.currentTime;
-        const result = _gestureServiceInstance.detect(this.videoElement, now);
-        
-        if (result) {
-          this.hands = result.hands;
-          const outputString = result.signo;
+        const now = performance.now()
+        if (this.lastVideoTime !== this.videoElement.currentTime) {
+          this.lastVideoTime = this.videoElement.currentTime
+          const result = _gestureServiceInstance.detect(this.videoElement, now)
 
-          // FIX: Mostrem el gest confirmat o "Escaneant..." si encara no hi ha prou confiança
-          if (outputString) {
-            this.fraseDetectada = outputString;
-          } else if (result.hands && result.hands.length > 0) {
-            this.fraseDetectada = "Escaneant mà..."; // Hi ha mà però no gest confirmat
-          }
-          // (si no hi ha mans, fraseDetectada queda com estava)
+          if (result) {
+            this.hands = result.hands
+            const outputString = result.signo
 
-          // FIX: Només avaluem si hi ha un gest confirmat (no null)
-          if (outputString && this.tipoFeedback !== 'success') {
-              this.currentSign = outputString;
+            // FIX: Mostrem el gest confirmat o "Escaneant..." si encara no hi ha prou confiança
+            if (outputString) {
+              this.fraseDetectada = outputString
+            } else if (result.hands && result.hands.length > 0) {
+              this.fraseDetectada = 'Escaneant mà...' // Hi ha mà però no gest confirmat
+            }
+            // (si no hi ha mans, fraseDetectada queda com estava)
+
+            // FIX: Només avaluem si hi ha un gest confirmat (no null)
+            if (outputString && this.tipoFeedback !== 'success') {
+              this.currentSign = outputString
 
               // Comprobem si coincideix amb el que demana la lliçó
               // FIX: Comparació case-insensitive per seguretat
               if (this.currentSign.toLowerCase() === this.llicoActualData.gestEsperat.toLowerCase()) {
-                  this.gestoCorrecto();
+                this.gestoCorrecto()
               }
+            }
+          } else {
+            this.hands = []
+            this.fraseDetectada = 'Esperant la mà...'
           }
-        } else {
-          this.hands = [];
-          this.fraseDetectada = "Esperant la mà...";
         }
-      }
-      
-      requestAnimationFrame(this.predictWebcam);
-    },
-    tornarAInici() {
-      this.$router.push('/');
-    },
-    intentarEntrarNivel(nivel) {
-      if (nivel.id <= this.nivelDesbloqueado) {
-        this.nivelActivo = nivel.id;
-        this.pasoActual = 1;
-        this.mensajeFeedback = null;
-        this.tipoFeedback = null; 
-        this.mostrarModalSuperat = false;
-        this.fraseDetectada = ''; 
-        
-        this.$nextTick(() => {
-          this.setupCamera();
-          const exerciseArea = this.$refs.exerciseArea;
-          if (exerciseArea) {
-            this.exerciseAreaStyle = {
-              width: `${exerciseArea.clientWidth}px`,
-              height: `${exerciseArea.clientHeight}px`,
-            };
-          }
-        });
-      }
-    },
-    sortirDeLlico() {
-      this.stopCamera();
-      this.nivelActivo = null;
-      this.pasoActual = 1;
-      this.mensajeFeedback = null;
-      this.tipoFeedback = null;
-      if (this.feedbackTimeout) clearTimeout(this.feedbackTimeout);
-    },
-    
-    gestoCorrecto() {
-        if (this.feedbackTimeout) clearTimeout(this.feedbackTimeout);
-        this.tipoFeedback = 'success';
+
+        requestAnimationFrame(this.predictWebcam)
+      },
+      tornarAInici () {
+        this.$router.push('/')
+      },
+      intentarEntrarNivel (nivel) {
+        if (nivel.id <= this.nivelDesbloqueado) {
+          this.nivelActivo = nivel.id
+          this.pasoActual = 1
+          this.mensajeFeedback = null
+          this.tipoFeedback = null
+          this.mostrarModalSuperat = false
+          this.fraseDetectada = ''
+
+          this.$nextTick(() => {
+            this.setupCamera()
+            const exerciseArea = this.$refs.exerciseArea
+            if (exerciseArea) {
+              this.exerciseAreaStyle = {
+                width: `${exerciseArea.clientWidth}px`,
+                height: `${exerciseArea.clientHeight}px`,
+              }
+            }
+          })
+        }
+      },
+      sortirDeLlico () {
+        this.stopCamera()
+        this.nivelActivo = null
+        this.pasoActual = 1
+        this.mensajeFeedback = null
+        this.tipoFeedback = null
+        if (this.feedbackTimeout) clearTimeout(this.feedbackTimeout)
+      },
+
+      gestoCorrecto () {
+        if (this.feedbackTimeout) clearTimeout(this.feedbackTimeout)
+        this.tipoFeedback = 'success'
 
         if (this.pasoActual === this.totalPasosLlico) {
-            this.mensajeFeedback = `Genial! Processant recompensa...`;
-            
-            if (this.nivelActivo === this.nivelDesbloqueado && this.nivelDesbloqueado <= this.niveles.length) {
-                this.nivelDesbloqueado++;
-                localStorage.setItem('gesto_nivel_desbloqueado', this.nivelDesbloqueado);
-            }
-            
-            this.feedbackTimeout = setTimeout(() => {
-                this.stopCamera(); 
-                this.mostrarModalSuperat = true; 
-            }, 1000);
+          this.mensajeFeedback = `Genial! Processant recompensa...`
 
+          if (this.nivelActivo === this.nivelDesbloqueado && this.nivelDesbloqueado <= this.niveles.length) {
+            this.nivelDesbloqueado++
+            localStorage.setItem('gesto_nivel_desbloqueado', this.nivelDesbloqueado)
+          }
+
+          this.feedbackTimeout = setTimeout(() => {
+            this.stopCamera()
+            this.mostrarModalSuperat = true
+          }, 1000)
         } else {
-            this.mensajeFeedback = `Correcte! Has fet el gest de "${this.llicoActualData.gestEsperat}".`;
-            this.feedbackTimeout = setTimeout(() => {
-                this.avançarLlicoAutomàtic();
-            }, 2000);
+          this.mensajeFeedback = `Correcte! Has fet el gest de "${this.llicoActualData.gestEsperat}".`
+          this.feedbackTimeout = setTimeout(() => {
+            this.avançarLlicoAutomàtic()
+          }, 2000)
         }
-    },
+      },
 
-    avançarLlicoAutomàtic() {
-        this.mensajeFeedback = null;
-        this.tipoFeedback = null; 
-        this.currentSign = ''; 
-        this.pasoActual++;
-    },
+      avançarLlicoAutomàtic () {
+        this.mensajeFeedback = null
+        this.tipoFeedback = null
+        this.currentSign = ''
+        this.pasoActual++
+      },
 
-    tancarModalIAnarAlMapa() {
-        this.mostrarModalSuperat = false;
-        this.sortirDeLlico();
-    }
+      tancarModalIAnarAlMapa () {
+        this.mostrarModalSuperat = false
+        this.sortirDeLlico()
+      },
+    },
   }
-}
 </script>
 
 <style scoped>
@@ -719,7 +777,7 @@ export default {
 
 @media (max-width: 768px) {
   .lesson-layout { grid-template-columns: 1fr; gap: 20px; }
-  .sign-display, .exercise-area { height: 300px; } 
+  .sign-display, .exercise-area { height: 300px; }
   .footer-content { justify-content: center; }
 }
 </style>
