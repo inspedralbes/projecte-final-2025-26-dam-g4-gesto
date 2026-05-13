@@ -77,35 +77,34 @@
           <button class="phrase-btn btn-clear" :disabled="bufferParaules.length === 0 || carregantIA" @click="netejarBuffer">✕ Netejar</button>
           <button class="phrase-btn btn-speak" :disabled="bufferParaules.length === 0" @click="llegirBuffer">🔊 Llegir</button>
           <button class="phrase-btn btn-ia" :disabled="bufferParaules.length === 0 || carregantIA" @click="generarFraseIA">
-            <span v-if="!carregantIA" class="btn-ia-content">
-              <svg
-                fill="none"
-                height="16"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                style="margin-right:6px;"
-                viewBox="0 0 24 24"
-                width="16"
-              ><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
-              Interpretar signes
-            </span>
-            <span v-else class="btn-ia-content">
-              <svg
-                class="spinner"
-                fill="none"
-                height="16"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                style="margin-right:6px;"
-                viewBox="0 0 24 24"
-                width="16"
-              ><line x1="12" x2="12" y1="2" y2="6" /><line x1="12" x2="12" y1="18" y2="22" /><line x1="4.93" x2="7.76" y1="4.93" y2="7.76" /><line x1="16.24" x2="19.07" y1="16.24" y2="19.07" /><line x1="2" x2="6" y1="12" y2="12" /><line x1="18" x2="22" y1="12" y2="12" /><line x1="4.93" x2="7.76" y1="19.07" y2="16.24" /><line x1="16.24" x2="19.07" y1="7.76" y2="4.93" /></svg>
-              Processant IA...
-            </span>
+            <span v-if="!carregantIA" class="btn-ia-content">
+              <svg
+                fill="none"
+                height="16"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                style="margin-right:6px;"
+                viewBox="0 0 24 24"
+                width="16"
+              ><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+              Interpretar signes
+            </span><span v-else class="btn-ia-content">
+              <svg
+                class="spinner"
+                fill="none"
+                height="16"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                style="margin-right:6px;"
+                viewBox="0 0 24 24"
+                width="16"
+              ><line x1="12" x2="12" y1="2" y2="6" /><line x1="12" x2="12" y1="18" y2="22" /><line x1="4.93" x2="7.76" y1="4.93" y2="7.76" /><line x1="16.24" x2="19.07" y1="16.24" y2="19.07" /><line x1="2" x2="6" y1="12" y2="12" /><line x1="18" x2="22" y1="12" y2="12" /><line x1="4.93" x2="7.76" y1="19.07" y2="16.24" /><line x1="16.24" x2="19.07" y1="7.76" y2="4.93" /></svg>
+              Processant IA...
+            </span>
           </button>
         </div>
       </div>
