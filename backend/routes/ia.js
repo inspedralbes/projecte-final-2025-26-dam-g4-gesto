@@ -76,23 +76,32 @@ router.post('/generar-frase', async (req, res) => {
 
   const paraulesLlegibles = signesNets.map(normalitzarSigne).join(' ');
 
-  // ── Prompt minimalista amb exemples few-shot ─────────────────────────────
-  const prompt = `Transforma aquestes paraules en una frase curta i natural en català. Respon NOMÉS amb la frase, sense explicacions.
-
-Paraules: Hola jo tinc amic
-Frase: Hola, jo tinc un amic.
-
-Paraules: jo voler menjar
-Frase: Jo vull menjar.
-
-Paraules: gràcies tu ajudar jo
-Frase: Gràcies per ajudar-me.
-
-Paraules: adeu fins aviat
-Frase: Adeu, fins aviat!
-
-Paraules: ${paraulesLlegibles}
-Frase:`;
+  // ── Sistema + exemples few-shot via /api/chat ──────────────────────────
+  // Usem /api/chat en lloc de /api/generate: permet un rol "system" separat
+  // que el model respecta molt millor (menys al·lucinacions, menys repeticions)
+  const messages = [
+    {
+      role: 'system',
+      content: `Ets un assistent que transforma llistes de paraules en frases curtes i naturals en català.
+Quan l'usuari t'enviï paraules, respondrà ÚNICAMENT amb la frase en català, sense explicacions, sense prefixos, sense cometes.
+La frase ha de tenir sentit gramatical, usar les paraules donades com a base, i ser breu (màxim 15 paraules).`,
+    },
+    { role: 'user', content: 'Paraules: Hola jo tenir amic' },
+    { role: 'assistant', content: 'Hola, jo tinc un amic.' },
+    { role: 'user', content: 'Paraules: jo voler menjar pa' },
+    { role: 'assistant', content: 'Jo vull menjar pa.' },
+    { role: 'user', content: 'Paraules: gràcies tu ajudar jo' },
+    { role: 'assistant', content: 'Gràcies per ajudar-me.' },
+    { role: 'user', content: 'Paraules: adeu fins aviat' },
+    { role: 'assistant', content: 'Adeu, fins aviat!' },
+    { role: 'user', content: 'Paraules: jo anar escola demà' },
+    { role: 'assistant', content: 'Jo aniré a l\'escola demà.' },
+    { role: 'user', content: 'Paraules: tu tenir gat negre' },
+    { role: 'assistant', content: 'Tu tens un gat negre.' },
+    { role: 'user', content: 'Paraules: necessitar ajuda metge' },
+    { role: 'assistant', content: 'Necessito ajuda d\'un metge.' },
+    { role: 'user', content: `Paraules: ${paraulesLlegibles}` },
+  ];
 
   try {
     let response;
@@ -101,22 +110,21 @@ Frase:`;
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: process.env.OLLAMA_MODEL || 'gemma:2b',
-        prompt: prompt,
+        messages,
         stream: false,
         options: {
-          temperature: 0.1,
+          temperature: 0.2,
           top_p: 0.9,
           num_predict: 60,
-          stop: ['\n', 'Paraules:', 'Frase:'],
         },
       }),
     };
 
     try {
-      response = await fetch('http://ollama:11434/api/generate', options);
+      response = await fetch('http://ollama:11434/api/chat', options);
     } catch (err) {
       console.warn("No s'ha pogut connectar a 'http://ollama:11434', provant a 'localhost'...");
-      response = await fetch('http://127.0.0.1:11434/api/generate', options);
+      response = await fetch('http://127.0.0.1:11434/api/chat', options);
     }
 
     if (!response.ok) {
@@ -128,13 +136,15 @@ Frase:`;
     }
 
     const data = await response.json();
-    let frase = data?.response?.trim();
+    // /api/chat retorna la resposta a data.message.content (no a data.response)
+    let frase = (data?.message?.content || data?.response || '').trim();
 
-    // Neteja la resposta del model
+    // Neteja la resposta del model: elimina qualsevol prefix que el model pugui afegir
     frase = frase
+      .replace(/^(ÚNICAMENT|NOMÉS|FRASE|RESPOSTA|RESULTAT|OUTPUT|ANSWER)\s*:\s*/i, '')
       .replace(/^frase:\s*/i, '')
-      .replace(/^"(.*)"$/, '$1')
-      .replace(/^'(.*)'$/, '$1')
+      .replace(/^"(.*)"$/s, '$1')
+      .replace(/^'(.*)'$/s, '$1')
       .split('\n')[0]
       .trim();
 
