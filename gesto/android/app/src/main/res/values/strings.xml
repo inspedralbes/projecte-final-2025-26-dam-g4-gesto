@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Gesto</string>
+    <string name="title_activity_main">Gesto</string>
+    <string name="package_name">cat.inspedralbes.gesto</string>
+    <string name="custom_url_scheme">cat.inspedralbes.gesto</string>
+</resources>
