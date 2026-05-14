@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="camera-container">
     <video
       ref="videoRef"
@@ -8,7 +8,7 @@
       muted
       playsinline
     />
-    <DrawSkeleton v-if="mostrarEsquelet" class="skeleton-overlay" :es-frontal="facingMode === 'user'" :hands-data="manosDetectadas" />
+    <DrawSkeleton v-if="mostrarEsquelet && rol === 'administrador'" class="skeleton-overlay" :es-frontal="facingMode === 'user'" :hands-data="manosDetectadas" />
 
     <div v-if="carregant" class="loading-overlay">
       <LoadingSpinner />
@@ -32,7 +32,7 @@
       </div>
     </transition>
 
-    <DatasetCreator :hands-data="manosDetectadas" :video-element="videoRef" />
+    <DatasetCreator v-if="rol === 'administrador'" :hands-data="manosDetectadas" :video-element="videoRef" />
 
     <div class="subtitles-zone">
       <transition name="fade-slide">
@@ -103,7 +103,7 @@
         <span class="ctrl-icon">🏠</span><span class="ctrl-label">Inici</span>
       </button>
       <div class="ctrl-divider" />
-      <button class="ctrl-btn" :class="{ actiu: mostrarEsquelet }" title="Esquelet" @click="mostrarEsquelet = !mostrarEsquelet">
+      <button v-if="rol === 'administrador'" class="ctrl-btn" :class="{ actiu: mostrarEsquelet }" title="Esquelet" @click="mostrarEsquelet = !mostrarEsquelet">
         <span class="ctrl-icon">👁️</span><span class="ctrl-label">Esquelet</span>
       </button>
       <button class="ctrl-btn" title="Canviar càmera" @click="switchCamera">
@@ -135,6 +135,9 @@
   let animationFrameId = null
   const mostrarEsquelet = ref(false)
   const lastSpokenSigno = ref(null)
+
+  const user = JSON.parse(localStorage.getItem('user') || '{}')
+  const rol = ref(user.rol || 'usuari')
 
   const bufferParaules = ref([])
   const fraseIA = ref('')
