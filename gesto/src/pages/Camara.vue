@@ -106,13 +106,11 @@
               Processant IA...
             </span>
           </button>
-        </div>
-      </div>
-
-      <div v-else class="buffer-hint">
-        <span>✋</span><p>Fes signes per construir frases</p>
-      </div>
-    </div>
+        </div>
+      </div><div v-else class="buffer-hint">
+        <span>✋</span><p>Fes signes per construir frases</p>
+      </div>
+    </div>
 
     <div class="controls-panel">
       <button class="ctrl-btn" title="Inici" @click="goHome">
