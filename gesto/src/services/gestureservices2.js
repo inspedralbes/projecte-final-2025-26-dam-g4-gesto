@@ -9,11 +9,11 @@ export class GestureService {
 
   gestCongelat = null
   tempsCongelat = 0
-  DURADA_MISSATGE = 3000
+  DURADA_MISSATGE = 1200
 
   gestPendent = null
   compteConfirmacio = 0
-  FRAMES_CONFIRMACIO = 1
+  FRAMES_CONFIRMACIO = 3
 
   classesSignes = []
 
