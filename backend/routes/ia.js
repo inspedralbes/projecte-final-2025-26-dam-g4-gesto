@@ -29,13 +29,13 @@ const ALIAS_SIGNES = {
 };
 
 // Converteix el nom d'un signe al mot català corresponent
-function normalitzarSigne (s) {
+function normalitzarSigne(s) {
   const clau = s.trim().toLowerCase();
   return ALIAS_SIGNES[clau] || s.trim();
 }
 
 // Comprova si la resposta del model és vàlida (no al·lucina)
-function respostaEsValida (frase, signesNets) {
+function respostaEsValida(frase, signesNets) {
   if (!frase || frase.length < 3) return false;
 
   const fraseNorm = frase.toLowerCase();
@@ -53,7 +53,7 @@ function respostaEsValida (frase, signesNets) {
 }
 
 // Fallback: construeix una frase senzilla i correcta a partir dels signes
-function construirFraseLocal (signesNets) {
+function construirFraseLocal(signesNets) {
   const paraules = signesNets.map(normalitzarSigne);
   if (paraules.length > 0) {
     paraules[0] = paraules[0].charAt(0).toUpperCase() + paraules[0].slice(1);
@@ -77,29 +77,43 @@ router.post('/generar-frase', async (req, res) => {
   const paraulesLlegibles = signesNets.map(normalitzarSigne).join(' ');
 
   // ── Sistema + exemples few-shot via /api/chat ──────────────────────────
-  // Usem /api/chat en lloc de /api/generate: permet un rol "system" separat
-  // que el model respecta molt millor (menys al·lucinacions, menys repeticions)
   const messages = [
     {
       role: 'system',
-      content: `Ets un assistent que transforma llistes de paraules en frases curtes i naturals en català.
-Quan l'usuari t'enviï paraules, respondrà ÚNICAMENT amb la frase en català, sense explicacions, sense prefixos, sense cometes.
-La frase ha de tenir sentit gramatical, usar les paraules donades com a base, i ser breu (màxim 15 paraules).`,
+      content: `Ets un expert traductor de Llengua de Signes Catalana (LSC) a text. 
+La teva tasca és transformar una seqüència de signes (que sovint tenen l'estructura Subjecte-Objecte-Verb i posen els nombres al final) en una frase natural i gramaticalment correcta en català.
+Regles:
+1. Ordena la frase correctament en català (Subjecte-Verb-Objecte).
+2. Conjuga els verbs adequadament.
+3. Afegeix articles o preposicions on calgui.
+4. Si hi ha un nombre major a 1, aplica el plural al nom corresponent (ex: "gos 10" -> "10 gossos").
+Respon ÚNICAMENT amb la frase final en català, sense explicacions, prefixos ni cometes.`,
     },
-    { role: 'user', content: 'Paraules: Hola jo tenir amic' },
-    { role: 'assistant', content: 'Hola, jo tinc un amic.' },
-    { role: 'user', content: 'Paraules: jo voler menjar pa' },
+    // Exemples amb estructura de Llengua de Signes (LSC)
+    { role: 'user', content: 'Paraules: jo amic tenir' },
+    { role: 'assistant', content: 'Jo tinc un amic.' },
+
+    { role: 'user', content: 'Paraules: jo pa menjar voler' },
     { role: 'assistant', content: 'Jo vull menjar pa.' },
+
     { role: 'user', content: 'Paraules: gràcies tu ajudar jo' },
     { role: 'assistant', content: 'Gràcies per ajudar-me.' },
-    { role: 'user', content: 'Paraules: adeu fins aviat' },
-    { role: 'assistant', content: 'Adeu, fins aviat!' },
-    { role: 'user', content: 'Paraules: jo anar escola demà' },
-    { role: 'assistant', content: 'Jo aniré a l\'escola demà.' },
-    { role: 'user', content: 'Paraules: tu tenir gat negre' },
-    { role: 'assistant', content: 'Tu tens un gat negre.' },
-    { role: 'user', content: 'Paraules: necessitar ajuda metge' },
-    { role: 'assistant', content: 'Necessito ajuda d\'un metge.' },
+
+    // Exemple per ensenyar-li a usar el plural amb els nombres i reordenar
+    { role: 'user', content: 'Paraules: jo gos tenir 10' },
+    { role: 'assistant', content: 'Jo tinc 10 gossos.' },
+
+    { role: 'user', content: 'Paraules: demà escola anar jo' },
+    { role: 'assistant', content: 'Demà jo aniré a l\'escola.' },
+
+    // Exemple avançat amb adjectius i nombres
+    { role: 'user', content: 'Paraules: tu gat negre 2 tenir' },
+    { role: 'assistant', content: 'Tu tens 2 gats negres.' },
+
+    { role: 'user', content: 'Paraules: metge ajuda necessitar' },
+    { role: 'assistant', content: 'Necessito l\'ajuda d\'un metge.' },
+
+    // La petició real de l'usuari
     { role: 'user', content: `Paraules: ${paraulesLlegibles}` },
   ];
 
