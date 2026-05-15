@@ -366,15 +366,16 @@
           {
             id: 4,
             categoria: 'Nivell 4',
-            descripcio: 'Frases Bàsiques',
-            titol: 'Jo tinc un amic',
+            descripcio: 'Repàs i Seqüència',
+            titol: 'Presentació final',
             llicons: [
-              { titol: 'Jo', instruccio: 'Assenyala\'t a tu mateix amb el dit índex.', gestEsperat: 'Jo', arxiu: '/videos/jo.mp4', esVideo: true },
-              { titol: 'Tinc', instruccio: 'Posa la mà plana sobre el pit.', gestEsperat: 'Tinc', arxiu: '/videos/tinc.mp4', esVideo: true },
-              { titol: 'Amic', instruccio: 'Uneix els dits índexs com si fessin un ganxo.', gestEsperat: 'Amic', arxiu: '/videos/amic.mp4', esVideo: true },
-              { titol: 'Frase completa', instruccio: 'Fes els tres gestos seguits: Jo, Tinc, Amic.', gestEsperat: 'Jo tinc un amic', arxiu: '/videos/jo_tinc_amic.mp4', esVideo: true },
+              { titol: 'Hola', instruccio: 'Comença saludant. Mou la mà de costat a costat.', gestEsperat: 'Hola', arxiu: '/videos/hola.mp4', esVideo: true },
+              { titol: 'Cinc', instruccio: 'Obre tota la mà per mostrar el número cinc.', gestEsperat: 'Cinc', arxiu: '/videos/cinc.mp4', esVideo: true },
+              { titol: 'Deu', instruccio: 'Les dues mans obertes per mostrar el número deu.', gestEsperat: 'Deu', arxiu: '/videos/deu.mp4', esVideo: true },
+              { titol: 'Adeu', instruccio: 'Acaba acomiadant-te. Tanca i obre la mà.', gestEsperat: 'Adeu', arxiu: '/videos/adeu.mp4', esVideo: true },
             ],
           },
+
         ],
       }
     },

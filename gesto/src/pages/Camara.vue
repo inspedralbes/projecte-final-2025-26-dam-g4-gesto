@@ -94,22 +94,26 @@
       </div>
 
       <div v-else class="buffer-hint">
-        <span>✋</span><p>Fes signes per construir frases</p>
+        <svg fill="none" height="22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24" width="22"><path d="M18 11V6.5a2.5 2.5 0 0 0-5 0v7m-5.5-7a2.5 2.5 0 0 0-5 0V16a7 7 0 0 0 14 0v-5" /></svg>
+        <p>Fes signes per construir frases</p>
       </div>
     </div>
 
-    <div class="controls-panel">
+    <nav class="controls-panel">
       <button class="ctrl-btn" title="Inici" @click="goHome">
-        <span class="ctrl-icon">🏠</span><span class="ctrl-label">Inici</span>
+        <svg fill="none" height="22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="22"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z" /><polyline points="9 21 9 12 15 12 15 21" /></svg>
+        <span class="ctrl-label">Inici</span>
       </button>
       <div class="ctrl-divider" />
       <button v-if="rol === 'administrador'" class="ctrl-btn" :class="{ actiu: mostrarEsquelet }" title="Esquelet" @click="mostrarEsquelet = !mostrarEsquelet">
-        <span class="ctrl-icon">👁️</span><span class="ctrl-label">Esquelet</span>
+        <svg fill="none" height="22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="22"><circle cx="12" cy="12" r="3" /><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" /></svg>
+        <span class="ctrl-label">Esquelet</span>
       </button>
       <button class="ctrl-btn" title="Canviar càmera" @click="switchCamera">
-        <span class="ctrl-icon">🔄</span><span class="ctrl-label">Càmera</span>
+        <svg fill="none" height="22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="22"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg>
+        <span class="ctrl-label">Càmera</span>
       </button>
-    </div>
+    </nav>
 
     <p v-if="error" class="error-msg">{{ error }}</p>
   </div>
@@ -144,7 +148,7 @@
   const fraseIAFontIA = ref(true)
   const carregantIA = ref(false)
   const ultimaParaulaAfegida = ref(null)
-  const IA_API_URL = '/api/ia/generar-frase'
+  const IA_API_URL = `${import.meta.env.VITE_API_URL}/api/ia/generar-frase`
 
   function borrarUltimaParaula () {
     bufferParaules.value.pop()
@@ -212,8 +216,8 @@
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: facingMode.value,
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
+          width: { ideal: 640 },
+          height: { ideal: 480 },
         },
         audio: false,
       })
@@ -221,11 +225,9 @@
       if (videoRef.value) {
         videoRef.value.srcObject = stream
         videoRef.value.addEventListener('loadeddata', () => {
-          if (animationFrameId) {
-            cancelAnimationFrame(animationFrameId)
-          }
+          if (animationFrameId) cancelAnimationFrame(animationFrameId)
           predictLoop()
-        })
+        }, { once: true })
       }
       error.value = null
     } catch {
@@ -239,38 +241,45 @@
   }
   const goHome = () => router.push('/')
 
-  function predictLoop () {
-    if (gestureService && !carregant.value && videoRef.value && videoRef.value.readyState === 4) {
-      const result = gestureService.detect(videoRef.value, performance.now())
-      if (result) {
-        manosDetectadas.value = result.hands || []
-        if (result.signo) {
-          const s = result.signo
-          if (s !== signoDetectado.value) {
-            signoDetectado.value = s
-            lastSpokenSigno.value = s
-          }
-          const valid = s !== 'none' && s !== 'Mà detectada' && s !== 'Esperant signes...'
-          if (valid && s !== ultimaParaulaAfegida.value) {
-            bufferParaules.value.push(s)
-            ultimaParaulaAfegida.value = s
-            if (bufferParaules.value.length > 15) {
-              bufferParaules.value.shift()
-            }
-          }
-        } else {
-          signoDetectado.value = manosDetectadas.value.length > 0 ? 'Mà detectada...' : ''
-          lastSpokenSigno.value = null
-          ultimaParaulaAfegida.value = null
+  // Throttle: cap AI inference to 15 fps to save CPU/GPU on mobile
+  const TARGET_FPS = 15
+  const FRAME_INTERVAL = 1000 / TARGET_FPS
+  let lastFrameTime = 0
+  let gestoCooldownUntil = 0
+  const GESTO_COOLDOWN_MS = 1200 // ms before the same sign can be added again
+
+  function predictLoop (timestamp = 0) {
+    animationFrameId = requestAnimationFrame(predictLoop)
+
+    // Skip frame if we're within the interval
+    if (timestamp - lastFrameTime < FRAME_INTERVAL) return
+    lastFrameTime = timestamp
+
+    if (!gestureService || carregant.value || !videoRef.value || videoRef.value.readyState < 3) return
+
+    const now = performance.now()
+    const result = gestureService.detect(videoRef.value, now)
+    if (result) {
+      manosDetectadas.value = result.hands || []
+      if (result.signo) {
+        const s = result.signo
+        if (s !== signoDetectado.value) signoDetectado.value = s
+        const valid = s !== 'none' && s !== 'Mà detectada' && s !== 'Esperant signes...'
+        if (valid && s !== ultimaParaulaAfegida.value && now > gestoCooldownUntil) {
+          bufferParaules.value.push(s)
+          if (bufferParaules.value.length > 15) bufferParaules.value.shift()
+          ultimaParaulaAfegida.value = s
+          gestoCooldownUntil = now + GESTO_COOLDOWN_MS
         }
       } else {
-        manosDetectadas.value = []
-        signoDetectado.value = ''
-        lastSpokenSigno.value = null
+        signoDetectado.value = manosDetectadas.value.length > 0 ? 'Mà detectada...' : ''
         ultimaParaulaAfegida.value = null
       }
+    } else {
+      manosDetectadas.value = []
+      signoDetectado.value = ''
+      ultimaParaulaAfegida.value = null
     }
-    animationFrameId = requestAnimationFrame(predictLoop)
   }
 
   onMounted(async () => {
@@ -342,7 +351,7 @@
 .hud-pop-leave-to { opacity:0; transform: translateX(-50%) scale(0.9); }
 
 .subtitles-zone {
-  position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+  position: absolute; bottom: 90px; left: 50%; transform: translateX(-50%);
   width: min(92%, 780px); z-index: 15;
   display: flex; flex-direction: column; gap: 12px; align-items: stretch;
 }
@@ -449,25 +458,26 @@
 .word-pop-leave-to { opacity:0; transform: scale(0.7); }
 
 .controls-panel {
-  position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
-  z-index: 20; display: flex; flex-direction: column; align-items: center; gap: 6px;
-  background: rgba(0,0,0,0.6); backdrop-filter: blur(16px);
-  border: 1px solid rgba(255,255,255,0.08);
-  padding: 12px 8px; border-radius: 24px;
+  position: absolute; bottom: 0; left: 0; right: 0;
+  z-index: 20; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 0;
+  background: rgba(0,0,0,0.7); backdrop-filter: blur(18px);
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding: 8px 12px; padding-bottom: calc(8px + env(safe-area-inset-bottom));
 }
-.ctrl-divider { width: 32px; height: 1px; background: rgba(255,255,255,0.1); margin: 4px 0; }
+.ctrl-divider { width: 1px; height: 36px; background: rgba(255,255,255,0.1); margin: 0 4px; }
 .ctrl-btn {
   display: flex; flex-direction: column; align-items: center; gap: 4px;
-  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 14px; width: 60px; padding: 10px 6px;
-  cursor: pointer; transition: background 0.2s, transform 0.15s, border-color 0.2s;
-  color: rgba(255,255,255,0.7);
+  background: none; border: none;
+  border-radius: 14px; flex: 1; padding: 10px 6px;
+  cursor: pointer; transition: background 0.2s, transform 0.15s;
+  color: rgba(255,255,255,0.65);
+  min-width: 60px; max-width: 90px;
+  -webkit-tap-highlight-color: transparent;
 }
-.ctrl-btn:hover { background: rgba(255,255,255,0.14); transform: scale(1.05); }
-.ctrl-btn:active { transform: scale(0.95); }
-.ctrl-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-.ctrl-btn.actiu { background: rgba(0,191,255,0.18); border-color: rgba(0,191,255,0.4); color: #00BFFF; }
-.ctrl-icon { font-size: 1.4rem; line-height: 1; }
+.ctrl-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.1); }
+.ctrl-btn.actiu { color: #00BFFF; }
+.ctrl-btn svg { transition: transform 0.2s; }
+.ctrl-btn:active svg { transform: scale(0.85); }
 .ctrl-label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
 
 .error-msg {
