@@ -13,7 +13,7 @@ export class GestureService {
 
   gestPendent = null
   compteConfirmacio = 0
-  FRAMES_CONFIRMACIO = 5
+  FRAMES_CONFIRMACIO = 3
 
   classesSignes = []
 
@@ -163,7 +163,7 @@ export class GestureService {
       const confianca = prediccio.max().dataSync()[0]
       const gestAdivinat = this.classesSignes[index]
 
-      return confianca > 0.65 ? gestAdivinat : null
+      return confianca > 0.8 ? gestAdivinat : null
     } catch (error) {
       console.error('Error en _predirSigne:', error)
       return null
