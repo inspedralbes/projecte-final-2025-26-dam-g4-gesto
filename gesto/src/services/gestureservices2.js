@@ -13,7 +13,7 @@ export class GestureService {
 
   gestPendent = null
   compteConfirmacio = 0
-  FRAMES_CONFIRMACIO = 3
+  FRAMES_CONFIRMACIO = 1
 
   classesSignes = []
 

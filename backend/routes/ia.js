@@ -26,6 +26,12 @@ const ALIAS_SIGNES = {
   '1': 'un',
   '2': 'dos',
   '3': 'tres',
+  'cinc': '5',
+  'sis': '6',
+  'set': '7',
+  'vuit': '8',
+  'nou': '9',
+  'deu': '10',
 };
 
 // Converteix el nom d'un signe al mot català corresponent
@@ -80,40 +86,16 @@ router.post('/generar-frase', async (req, res) => {
   const messages = [
     {
       role: 'system',
-      content: `Ets un expert traductor de Llengua de Signes Catalana (LSC) a text. 
-La teva tasca és transformar una seqüència de signes (que sovint tenen l'estructura Subjecte-Objecte-Verb i posen els nombres al final) en una frase natural i gramaticalment correcta en català.
-Regles:
-1. Ordena la frase correctament en català (Subjecte-Verb-Objecte).
-2. Conjuga els verbs adequadament.
-3. Afegeix articles o preposicions on calgui.
-4. Si hi ha un nombre major a 1, aplica el plural al nom corresponent (ex: "gos 10" -> "10 gossos").
-Respon ÚNICAMENT amb la frase final en català, sense explicacions, prefixos ni cometes.`,
+      content: `Ets un assistent. Converteix les paraules donades en una sola frase en català. Corregeix l'ordre i aplica el plural si hi ha un nombre. Retorna NOMÉS la frase, res més.`
     },
-    // Exemples amb estructura de Llengua de Signes (LSC)
     { role: 'user', content: 'Paraules: jo amic tenir' },
     { role: 'assistant', content: 'Jo tinc un amic.' },
-
-    { role: 'user', content: 'Paraules: jo pa menjar voler' },
-    { role: 'assistant', content: 'Jo vull menjar pa.' },
-
-    { role: 'user', content: 'Paraules: gràcies tu ajudar jo' },
-    { role: 'assistant', content: 'Gràcies per ajudar-me.' },
-
-    // Exemple per ensenyar-li a usar el plural amb els nombres i reordenar
-    { role: 'user', content: 'Paraules: jo gos tenir 10' },
-    { role: 'assistant', content: 'Jo tinc 10 gossos.' },
-
-    { role: 'user', content: 'Paraules: demà escola anar jo' },
-    { role: 'assistant', content: 'Demà jo aniré a l\'escola.' },
-
-    // Exemple avançat amb adjectius i nombres
-    { role: 'user', content: 'Paraules: tu gat negre 2 tenir' },
-    { role: 'assistant', content: 'Tu tens 2 gats negres.' },
-
-    { role: 'user', content: 'Paraules: metge ajuda necessitar' },
-    { role: 'assistant', content: 'Necessito l\'ajuda d\'un metge.' },
-
-    // La petició real de l'usuari
+    { role: 'user', content: 'Paraules: nosaltres pa menjar' },
+    { role: 'assistant', content: 'Nosaltres mengem pa.' },
+    { role: 'user', content: 'Paraules: ell llibre tenir 3' },
+    { role: 'assistant', content: 'Ell té 3 llibres.' },
+    { role: 'user', content: 'Paraules: tu cotxe comprar 2' },
+    { role: 'assistant', content: 'Tu compres 2 cotxes.' },
     { role: 'user', content: `Paraules: ${paraulesLlegibles}` },
   ];
 
