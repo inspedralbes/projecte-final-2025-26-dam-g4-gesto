@@ -16,10 +16,6 @@ export class GestureService {
   FRAMES_CONFIRMACIO = 3
 
   classesSignes = []
-  
-  // Para detectar cambios en el modelo
-  modelHash = null
-  intervalVerificacio = null
 
   constructor () {
     // Inicialització de variables d'estat
@@ -49,81 +45,29 @@ export class GestureService {
       await tf.ready()
       console.log('✅ TensorFlow.js llest. Backend:', tf.getBackend())
 
-      await this.reloadModel()
-      this.enExecucio = true
-      
-      // Iniciar verificació periòdica de canvis en el model (cada 30 segons)
-      this.iniciarVerificacioModel()
-    } catch (error) {
-      console.error('Error inicialitzant GestureService:', error)
-      throw error
-    }
-  }
-
-  async reloadModel () {
-    try {
       const noCache = '?t=' + Date.now()
       const basePath = '/entrenament_signes/model_web_v2/'
 
-      // Si hay un modelo anterior, lo limpiamos
-      if (this.model) {
-        this.model.dispose()
-        this.model = null
-      }
-
       const classesResponse = await fetch(basePath + 'classes.json' + noCache)
       if (classesResponse.ok) {
-        const classes = await classesResponse.json()
-        this.classesSignes = classes
-        this.modelHash = JSON.stringify(classes)
+        this.classesSignes = await classesResponse.json()
         console.log('✅ Clases cargadas:', this.classesSignes)
       } else {
         console.warn('⚠️ No se encontró classes.json')
       }
 
       this.model = await tf.loadLayersModel(basePath + 'model.json' + noCache)
-      console.log('✅ Model recarregat correctament')
+      console.log('✅ Model carregat correctament')
+
+      this.enExecucio = true
     } catch (error) {
-      console.error('Error recarregant el model:', error)
+      console.error('Error inicialitzant GestureService:', error)
       throw error
     }
   }
 
-  iniciarVerificacioModel () {
-    if (this.intervalVerificacio) {
-      clearInterval(this.intervalVerificacio)
-    }
-    
-    this.intervalVerificacio = setInterval(async () => {
-      try {
-        const noCache = '?t=' + Date.now()
-        const basePath = '/entrenament_signes/model_web_v2/'
-        
-        const classesResponse = await fetch(basePath + 'classes.json' + noCache)
-        if (classesResponse.ok) {
-          const classes = await classesResponse.json()
-          const newHash = JSON.stringify(classes)
-          
-          if (newHash !== this.modelHash) {
-            console.log('🔄 Detectat canvi en el model, recarregant...')
-            await this.reloadModel()
-            console.log('✅ Model recarregat per detecció de canvis')
-          }
-        }
-      } catch (error) {
-        console.warn('⚠️ Error verificant canvis del model:', error)
-      }
-    }, 30000) // Verificar cada 30 segundos
-  }
-
   destroy () {
     this.enExecucio = false
-    
-    if (this.intervalVerificacio) {
-      clearInterval(this.intervalVerificacio)
-      this.intervalVerificacio = null
-    }
-    
     if (this.model) {
       this.model.dispose()
       this.model = null
