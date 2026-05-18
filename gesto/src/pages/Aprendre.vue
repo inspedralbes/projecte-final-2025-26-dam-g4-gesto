@@ -173,7 +173,7 @@
             </button>
             <div class="node-info">
               <h3>Jo tinc un amic</h3>
-              <span class="lesson-count">4 lliçons</span>
+              <span class="lesson-count">3 lliçons</span>
             </div>
           </div>
 
@@ -372,7 +372,6 @@
               { titol: 'Jo', instruccio: 'Assenyala\'t a tu mateix amb el dit índex.', gestEsperat: 'Jo', arxiu: '/videos/jo.mp4', esVideo: true },
               { titol: 'Amic', instruccio: 'Uneix els dits índexs com si fessin un ganxo.', gestEsperat: 'Amic', arxiu: '/videos/amic.mp4', esVideo: true },
               { titol: 'Tenir', instruccio: 'Posa la mà plana sobre el pit.', gestEsperat: 'Tenir', arxiu: '/videos/tenir.mp4', esVideo: true },
-              { titol: 'Frase completa', instruccio: 'Fes els tres gestos seguits: Jo, Amic, Tenir.', gestEsperat: 'Jo amic tenir', arxiu: '/videos/jo_amic_tenir.mp4', esVideo: true },
             ],
           },
         ],
