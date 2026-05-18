@@ -370,9 +370,9 @@
             titol: 'Jo tinc un amic',
             llicons: [
               { titol: 'Jo', instruccio: 'Assenyala\'t a tu mateix amb el dit índex.', gestEsperat: 'Jo', arxiu: '/videos/jo.mp4', esVideo: true },
-              { titol: 'Tinc', instruccio: 'Posa la mà plana sobre el pit.', gestEsperat: 'Tinc', arxiu: '/videos/tinc.mp4', esVideo: true },
               { titol: 'Amic', instruccio: 'Uneix els dits índexs com si fessin un ganxo.', gestEsperat: 'Amic', arxiu: '/videos/amic.mp4', esVideo: true },
-              { titol: 'Frase completa', instruccio: 'Fes els tres gestos seguits: Jo, Tinc, Amic.', gestEsperat: 'Jo tinc un amic', arxiu: '/videos/jo_tinc_amic.mp4', esVideo: true },
+              { titol: 'Tenir', instruccio: 'Posa la mà plana sobre el pit.', gestEsperat: 'Tenir', arxiu: '/videos/tenir.mp4', esVideo: true },
+              { titol: 'Frase completa', instruccio: 'Fes els tres gestos seguits: Jo, Amic, Tenir.', gestEsperat: 'Jo amic tenir', arxiu: '/videos/jo_amic_tenir.mp4', esVideo: true },
             ],
           },
         ],
